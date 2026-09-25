@@ -3,21 +3,20 @@
 - Todos los JSON del reporte son válidos.
 - Cada tabla, columna o medida que usan los visuales (incluidos los selectores por
   serie) existe en el modelo TMDL.
-Sale con código 1 si encuentra problemas.
+
+Uso: python design/validate.py   (sale con código 1 si encuentra problemas)
 """
 import json
 import re
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
-TABLES = ROOT / "Olist_Dashboard.SemanticModel" / "definition" / "tables"
-PAGES = ROOT / "Olist_Dashboard.Report" / "definition" / "pages"
+from common import MODEL_TABLES, REPORT
 
 
 def model_objects():
+    """{tabla: {columnas y medidas}} leído de los archivos TMDL."""
     model = {}
-    for f in TABLES.glob("*.tmdl"):
+    for f in MODEL_TABLES.glob("*.tmdl"):
         table, names = None, set()
         for line in f.read_text(encoding="utf-8").splitlines():
             m = re.match(r"^table ('((?:[^']|'')+)'|(\S+))", line)
@@ -31,6 +30,7 @@ def model_objects():
 
 
 def references(node):
+    """Recorre un visual.json y devuelve (tabla, campo) de cada columna o medida referenciada."""
     if isinstance(node, dict):
         for kind in ("Column", "Measure"):
             ref = node.get(kind)
@@ -47,21 +47,21 @@ def references(node):
 
 def main():
     problems = []
-    for f in (ROOT / "Olist_Dashboard.Report").rglob("*.json"):
+    for f in REPORT.rglob("*.json"):
         try:
             json.loads(f.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            problems.append(f"JSON inválido: {f.relative_to(ROOT)}: {e}")
+            problems.append(f"JSON inválido: {f.relative_to(REPORT)}: {e}")
     model = model_objects()
     count = 0
-    for f in PAGES.glob("*/visuals/*/visual.json"):
-        text = f.read_text(encoding="utf-8")
-        refs = list(references(json.loads(text)))
-        refs += [tuple(sel.split(".", 1)) for sel in re.findall(r'"metadata": "([^"]+)"', text)]
+    for f in (REPORT / "definition" / "pages").glob("*/visuals/*/visual.json"):
+        content = f.read_text(encoding="utf-8")
+        refs = list(references(json.loads(content)))
+        refs += [tuple(sel.split(".", 1)) for sel in re.findall(r'"metadata": "([^"]+)"', content)]
         for entity, prop in refs:
             count += 1
             if prop not in model.get(entity, ()):
-                problems.append(f"No existe {entity}[{prop}] ({f.parent.name})")
+                problems.append(f"No existe {entity}[{prop}] (visual {f.parent.name})")
     print(f"referencias revisadas: {count}")
     for p in problems:
         print("  ✗", p)

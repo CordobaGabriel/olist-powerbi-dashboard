@@ -17,3 +17,9 @@ desktop.ini
 
 # Node (por si el MCP deja artefactos locales)
 node_modules/
+
+# Python
+__pycache__/
+
+# Binarios de Power BI: el proyecto se versiona como PBIP (texto)
+*.pbix

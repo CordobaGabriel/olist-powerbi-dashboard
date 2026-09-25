@@ -468,18 +468,6 @@ table Medidas
 		displayFolder: 10. Escenarios
 		lineageTag: 1429f467-1a0d-4d12-a7e0-a23fa1d9dc1f
 
-	measure 'Δ Ventas Flecha' =
-			VAR Actual = [Ventas]
-			VAR Anterior = [Ventas AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Ventas Texto' =
 			VAR Actual = [Ventas]
 			VAR Anterior = [Ventas AA]
@@ -488,7 +476,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -518,18 +506,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Ingresos Productos Flecha' =
-			VAR Actual = [Ingresos Productos]
-			VAR Anterior = [Ingresos Productos AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Ingresos Productos Texto' =
 			VAR Actual = [Ingresos Productos]
 			VAR Anterior = [Ingresos Productos AA]
@@ -538,7 +514,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -568,18 +544,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Margen Contribución Flecha' =
-			VAR Actual = [Margen Contribución]
-			VAR Anterior = [Margen Contribución AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Margen Contribución Texto' =
 			VAR Actual = [Margen Contribución]
 			VAR Anterior = [Margen Contribución AA]
@@ -588,7 +552,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -618,18 +582,6 @@ table Medidas
 		formatString: 0.0%
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ % Margen Contribución Flecha' =
-			VAR Actual = [% Margen Contribución]
-			VAR Anterior = [% Margen Contribución AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ % Margen Contribución Texto' =
 			VAR Actual = [% Margen Contribución]
 			VAR Anterior = [% Margen Contribución AA]
@@ -638,7 +590,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -668,18 +620,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Ticket Medio Flecha' =
-			VAR Actual = [Ticket Medio]
-			VAR Anterior = [Ticket Medio AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Ticket Medio Texto' =
 			VAR Actual = [Ticket Medio]
 			VAR Anterior = [Ticket Medio AA]
@@ -688,7 +628,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -718,18 +658,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Cantidad Pedidos Flecha' =
-			VAR Actual = [Cantidad Pedidos]
-			VAR Anterior = [Cantidad Pedidos AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Cantidad Pedidos Texto' =
 			VAR Actual = [Cantidad Pedidos]
 			VAR Anterior = [Cantidad Pedidos AA]
@@ -738,7 +666,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -768,18 +696,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Cantidad Clientes Flecha' =
-			VAR Actual = [Cantidad Clientes]
-			VAR Anterior = [Cantidad Clientes AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Cantidad Clientes Texto' =
 			VAR Actual = [Cantidad Clientes]
 			VAR Anterior = [Cantidad Clientes AA]
@@ -788,7 +704,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -818,18 +734,6 @@ table Medidas
 		formatString: 0.0%
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ % Clientes Recurrentes Flecha' =
-			VAR Actual = [% Clientes Recurrentes]
-			VAR Anterior = [% Clientes Recurrentes AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ % Clientes Recurrentes Texto' =
 			VAR Actual = [% Clientes Recurrentes]
 			VAR Anterior = [% Clientes Recurrentes AA]
@@ -838,7 +742,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -868,18 +772,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Ventas por Cliente Flecha' =
-			VAR Actual = [Ventas por Cliente]
-			VAR Anterior = [Ventas por Cliente AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Ventas por Cliente Texto' =
 			VAR Actual = [Ventas por Cliente]
 			VAR Anterior = [Ventas por Cliente AA]
@@ -888,7 +780,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -918,18 +810,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Margen por Cliente Flecha' =
-			VAR Actual = [Margen por Cliente]
-			VAR Anterior = [Margen por Cliente AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Margen por Cliente Texto' =
 			VAR Actual = [Margen por Cliente]
 			VAR Anterior = [Margen por Cliente AA]
@@ -938,7 +818,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -968,18 +848,6 @@ table Medidas
 		formatString: 0.0%
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ % Entregas con Retraso Flecha' =
-			VAR Actual = [% Entregas con Retraso]
-			VAR Anterior = [% Entregas con Retraso AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ % Entregas con Retraso Texto' =
 			VAR Actual = [% Entregas con Retraso]
 			VAR Anterior = [% Entregas con Retraso AA]
@@ -988,7 +856,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1018,18 +886,6 @@ table Medidas
 		formatString: 0.0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Días Entrega Promedio Flecha' =
-			VAR Actual = [Días Entrega Promedio]
-			VAR Anterior = [Días Entrega Promedio AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Días Entrega Promedio Texto' =
 			VAR Actual = [Días Entrega Promedio]
 			VAR Anterior = [Días Entrega Promedio AA]
@@ -1038,7 +894,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1068,18 +924,6 @@ table Medidas
 		formatString: 0.0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Días Despacho Vendedor Flecha' =
-			VAR Actual = [Días Despacho Vendedor]
-			VAR Anterior = [Días Despacho Vendedor AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Días Despacho Vendedor Texto' =
 			VAR Actual = [Días Despacho Vendedor]
 			VAR Anterior = [Días Despacho Vendedor AA]
@@ -1088,7 +932,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1118,18 +962,6 @@ table Medidas
 		formatString: 0.0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Días Tránsito Flecha' =
-			VAR Actual = [Días Tránsito]
-			VAR Anterior = [Días Tránsito AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Días Tránsito Texto' =
 			VAR Actual = [Días Tránsito]
 			VAR Anterior = [Días Tránsito AA]
@@ -1138,7 +970,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1168,18 +1000,6 @@ table Medidas
 		formatString: 0.0%
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Costo Envío % Ventas Flecha' =
-			VAR Actual = [Costo Envío % Ventas]
-			VAR Anterior = [Costo Envío % Ventas AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Costo Envío % Ventas Texto' =
 			VAR Actual = [Costo Envío % Ventas]
 			VAR Anterior = [Costo Envío % Ventas AA]
@@ -1188,7 +1008,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1218,18 +1038,6 @@ table Medidas
 		formatString: 0.00
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Puntaje Promedio Flecha' =
-			VAR Actual = [Puntaje Promedio]
-			VAR Anterior = [Puntaje Promedio AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Puntaje Promedio Texto' =
 			VAR Actual = [Puntaje Promedio]
 			VAR Anterior = [Puntaje Promedio AA]
@@ -1238,7 +1046,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.00" ) & " pts" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.00" ) & " pts" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1268,18 +1076,6 @@ table Medidas
 		formatString: 0.0%
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ % Reseñas Positivas (4-5) Flecha' =
-			VAR Actual = [% Reseñas Positivas (4-5)]
-			VAR Anterior = [% Reseñas Positivas (4-5) AA]
-			VAR Delta = Actual - Anterior
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ % Reseñas Positivas (4-5) Texto' =
 			VAR Actual = [% Reseñas Positivas (4-5)]
 			VAR Anterior = [% Reseñas Positivas (4-5) AA]
@@ -1288,7 +1084,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1318,18 +1114,6 @@ table Medidas
 		formatString: #,0
 		displayFolder: 8. Comparaciones
 
-	measure 'Δ Cantidad Reseñas Flecha' =
-			VAR Actual = [Cantidad Reseñas]
-			VAR Anterior = [Cantidad Reseñas AA]
-			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
-			RETURN
-			    IF(
-			        ISBLANK( Actual ) || ISBLANK( Anterior ),
-			        "●",
-			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
-			    )
-		displayFolder: 8. Comparaciones
-
 	measure 'Δ Cantidad Reseñas Texto' =
 			VAR Actual = [Cantidad Reseñas]
 			VAR Anterior = [Cantidad Reseñas AA]
@@ -1338,7 +1122,7 @@ table Medidas
 			    IF(
 			        ISBLANK( Actual ) || ISBLANK( Anterior ),
 			        "sin dato del año anterior",
-			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			        IF( Delta > 0, "▲ ", IF( Delta < 0, "▼ ", "" ) ) & FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
 			    )
 		displayFolder: 8. Comparaciones
 
@@ -1388,9 +1172,6 @@ table Medidas
 	measure 'Texto Meta Anual' = "Meta anual: " & FORMAT( [Meta Ventas Plan] / 1000000, "R$ #,0.0" ) & " M"
 		displayFolder: 9. Metas y Proyección
 
-	measure 'Meta Ventas Flecha' = IF( ISBLANK( [Cumplimiento Meta] ), "●", "◆" )
-		displayFolder: 9. Metas y Proyección
-
 	measure 'Meta Ventas Texto' =
 			VAR C = [Cumplimiento Meta]
 			RETURN
@@ -1401,14 +1182,14 @@ table Medidas
 		isHidden
 		displayFolder: 9. Metas y Proyección
 
-	measure 'Cumplimiento Proyectado Color' = SWITCH( TRUE(), ISBLANK( [Cumplimiento Proyectado] ), "#8A96B3", [Cumplimiento Proyectado] >= 1, "#0CA30C", [Cumplimiento Proyectado] >= 0.9, "#FAB219", "#EC835A" )
-		isHidden
-		displayFolder: 9. Metas y Proyección
-
 	measure 'Cumplimiento Proyectado Texto' =
 			VAR C = [Cumplimiento Proyectado]
 			RETURN
 			    IF( ISBLANK( C ), "sin meta", FORMAT( C, "0%" ) & " de la meta anual" )
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Cumplimiento Proyectado Color' = SWITCH( TRUE(), ISBLANK( [Cumplimiento Proyectado] ), "#8A96B3", [Cumplimiento Proyectado] >= 1, "#0CA30C", [Cumplimiento Proyectado] >= 0.9, "#FAB219", "#EC835A" )
+		isHidden
 		displayFolder: 9. Metas y Proyección
 
 	/// Bala de cumplimiento de meta: barra = cumplimiento (0-150 %), marca blanca = 100 %.
@@ -1440,7 +1221,7 @@ table Medidas
 			    IF(
 			        NOT ISBLANK( R ),
 			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='58' height='22'>"
-			            & "<rect x='1' y='1' width='56' height='20' rx='3' fill='%23172243'/>"
+			            & "<rect x='1' y='1' width='56' height='20' rx='3' fill='%2316213F'/>"
 			            & "<rect x='1' y='1' width='56' height='20' rx='3' fill='%233B78F0' fill-opacity='"
 			            & SUBSTITUTE( FORMAT( Intensidad, "0.00" ), ",", "." ) & "'/>"
 			            & "<text x='29' y='15' text-anchor='middle' font-family='Segoe UI' font-size='10' fill='%23E6EAF2'>"
@@ -1454,8 +1235,7 @@ table Medidas
 			VAR M = [Margen Contribución]
 			VAR Maximo = MAXX( ALLSELECTED( Productos[Categoría] ), [Margen Contribución] )
 			VAR Ancho = MAX( ROUND( DIVIDE( M, Maximo ) * 80, 0 ), 1 )
-			VAR Clase = [Clase ABC]
-			VAR Color = SWITCH( Clase, "A", "%233B78F0", "B", "%232C5AB5", "%23344266" )
+			VAR Color = SWITCH( [Clase ABC], "A", "%233B78F0", "B", "%232C5AB5", "%23344266" )
 			VAR Texto = SUBSTITUTE( FORMAT( [% Acumulado Margen], "0%" ), "%", "%25" )
 			RETURN
 			    IF(
@@ -1486,6 +1266,7 @@ table Medidas
 		dataCategory: ImageUrl
 		displayFolder: 6. Visuales SVG
 
+	/// Estrellas solo para vendedores con muestra representativa.
 	measure 'SVG Puntaje Vendedor' = IF( [Cantidad Pedidos] >= 50, [SVG Estrellas Compactas] )
 		dataCategory: ImageUrl
 		displayFolder: 6. Visuales SVG

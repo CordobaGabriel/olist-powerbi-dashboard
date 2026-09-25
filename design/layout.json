@@ -354,8 +354,7 @@
           "subtitle": "% de clientes de cada cohorte que vuelve a comprar N meses después"
         },
         "rtop": {
-          "title": "Clientes por frecuencia de compra",
-          "subtitle": "Historial completo de cada cliente"
+          "title": "Clientes por frecuencia de compra"
         },
         "rbot": {
           "title": "Ventas por rango de ticket",

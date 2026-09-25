@@ -10,20 +10,18 @@
          -webkit-font-smoothing: antialiased; }
   .rail { position:absolute; left:0; top:0; width:200px; height:720px;
            background:#0D1631; border-right:1px solid #1F2B4D; }
-  .logo { position:absolute; left:24px; top:24px;
-           width:36px; height:36px;
+  .logo { position:absolute; left:24px; top:24px; width:36px; height:36px;
            background:#F4F6FB; border-radius:9px; padding:4px; }
   .brand { position:absolute; left:72px; top:25px;
             font-size:16px; font-weight:600; letter-spacing:.1px; line-height:1.15; }
   .brand small { display:block; font-size:10.5px; font-weight:400; color:#8A96B3; margin-top:2px; }
-  .section { position:absolute; left:24px; font-size:9.5px; font-weight:600; letter-spacing:1.4px;
-              color:#8A96B3; text-transform:uppercase; }
   .active { position:absolute; left:12px; top:192px; width:176px; height:40px;
              border-radius:8px; background:#3B78F024; }
   .active::before { content:""; position:absolute; left:0; top:10px; bottom:10px; width:3px;
                      border-radius:0 3px 3px 0; background:#3B78F0; }
   .divider { position:absolute; height:1px; background:#1F2B4D; }
-  .note { position:absolute; left:12px; width:176px; text-align:center; font-size:10px; color:#8A96B3; line-height:1.4; }
+  .note { position:absolute; left:12px; width:176px; text-align:center; font-size:10px; color:#8A96B3;
+           line-height:1.4; }
   .note b { color:#B4BDD3; font-weight:600; }
   .title { position:absolute; left:224px; top:22px; }
   .title h1 { font-size:22px; font-weight:600; letter-spacing:-.2px; line-height:1.2; }
@@ -33,6 +31,7 @@
   .klabel { position:absolute; left:0; top:14px; text-align:center; font-size:10px; font-weight:600;
              letter-spacing:.9px; text-transform:uppercase; color:#8A96B3;
              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 10px; }
+  /* textos dibujados acá a la escala de Power BI: 1 pt de Power BI = 1,33 px */
   .plabel { position:absolute; left:0; right:0; top:16px; text-align:center; font-size:11px; font-weight:600;
              letter-spacing:.9px; text-transform:uppercase; color:#8A96B3; }
   .pnote { position:absolute; left:0; right:0; bottom:18px; text-align:center; font-size:13.5px; color:#B4BDD3; }
@@ -43,12 +42,11 @@
   <img class="logo" src="../assets/olist_logo.png">
   <div class="brand">Olist<small>Tablero de Dirección</small></div>
   <div class="divider" style="left:24px;top:80px;width:152px"></div>
-  <div class="section" style="top:88px">&nbsp;</div>
   <div class="active"></div>
   <div class="divider" style="left:24px;top:614px;width:152px"></div>
   <div class="note" style="top:652px">Costos y metas: <b>supuestos</b><br>editables en el modelo</div>
   <div class="title"><h1>Operación logística</h1><p>Qué causa los retrasos y qué vendedores revisar primero</p></div>
   <div class="divider" style="left:224px;top:78px;width:1032px;opacity:.6"></div>
-  <div class="panel tile" style="left:224.0px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Entregas con retraso</span></div><div class="panel tile" style="left:433.6px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Días de entrega</span></div><div class="panel tile" style="left:643.2px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Despacho del vendedor</span></div><div class="panel tile" style="left:852.8px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Tránsito</span></div><div class="panel tile" style="left:1062.4px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Envío sobre ventas</span></div>
+  <div class="panel" style="left:224.0px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Entregas con retraso</span></div><div class="panel" style="left:433.6px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Días de entrega</span></div><div class="panel" style="left:643.2px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Despacho del vendedor</span></div><div class="panel" style="left:852.8px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Tránsito</span></div><div class="panel" style="left:1062.4px;top:88.0px;width:193.6px;height:124.0px"><span class="klabel" style="width:193.6px">Envío sobre ventas</span></div>
   <div class="panel" style="left:224.0px;top:232.0px;width:620.0px;height:464.0px"></div><div class="panel" style="left:860.0px;top:232.0px;width:396.0px;height:464.0px"></div>
 </body></html>
