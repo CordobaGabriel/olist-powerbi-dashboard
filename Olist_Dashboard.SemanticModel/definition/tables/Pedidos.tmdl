@@ -233,15 +233,6 @@ table Pedidos
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'Orden Rango Ticket' = SWITCH( Pedidos[Rango Ticket (origen)], "Ticket < 75", 1, "Ticket 75-150", 2, "Ticket 150-350", 3, "Ticket 350-500", 4, "Ticket > 500", 5, 99 )
-		isHidden
-		summarizeBy: none
-
-	/// Copia de la columna de origen para poder ordenarla por 'Orden Rango Ticket' sin dependencia circular.
-	column 'Rango Ticket' = Pedidos[Rango Ticket (origen)]
-		summarizeBy: none
-		sortByColumn: 'Orden Rango Ticket'
-
 	column 'Score Valor'
 		dataType: int64
 		formatString: 0
@@ -300,6 +291,17 @@ table Pedidos
 
 	column 'Método Pago Principal' = SWITCH( Pedidos[Método Pago Principal (origen)], "credit_card", "Tarjeta de Crédito", "debit_card", "Tarjeta de Débito", "voucher", "Voucher", "boleto", "Boleto", "Otros" )
 		lineageTag: fb9a3905-3e22-46fd-8226-379e934654ad
+
+	column 'Orden Rango Ticket' = SWITCH( Pedidos[Rango Ticket (origen)], "Ticket < 75", 1, "Ticket 75-150", 2, "Ticket 150-350", 3, "Ticket 350-500", 4, "Ticket > 500", 5, 99 )
+		isHidden
+		lineageTag: 59604306-4029-439e-ac2b-4feddce710ed
+		summarizeBy: none
+
+	/// Copia de la columna de origen para poder ordenarla por 'Orden Rango Ticket' sin dependencia circular.
+	column 'Rango Ticket' = Pedidos[Rango Ticket (origen)]
+		lineageTag: 44006f54-1a81-40ae-9bb8-2a1ea77bb442
+		summarizeBy: none
+		sortByColumn: 'Orden Rango Ticket'
 
 	partition Pedidos = m
 		mode: import

@@ -156,10 +156,11 @@ table Medidas
 			        ISINSCOPE( Productos[Macro Categoría] ),
 			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='170' height='20'>"
 			            & "<rect x='0' y='6' width='110' height='8' rx='4' fill='%231F2B4D'/>"
-			            & "<rect x='0' y='6' width='" & Ancho & "' height='8' rx='4' fill='%232F6BFF'/>"
+			            & "<rect x='0' y='6' width='" & Ancho & "' height='8' rx='4' fill='%233B78F0'/>"
 			            & "<text x='118' y='14' font-family='Segoe UI' font-size='11' fill='%23E6EAF2'>" & Texto & "</text></svg>"
 			    )
 		displayFolder: 6. Visuales SVG
+		lineageTag: dc2cc121-508b-49b2-a4f4-efbc1e5e13e7
 		dataCategory: ImageUrl
 
 	/// Cinco estrellas SVG rellenas según el puntaje promedio de reseñas.
@@ -180,7 +181,1314 @@ table Medidas
 			            & "<text x='90' y='13' font-family='Segoe UI' font-size='11' fill='%23E6EAF2'>" & FORMAT( Puntaje, "0.00" ) & "</text></svg>"
 			    )
 		displayFolder: 6. Visuales SVG
+		lineageTag: 484b5821-636e-401e-99a3-989e6541998d
 		dataCategory: ImageUrl
+
+	/// Última fecha con pedidos en todo el modelo. Corta las comparaciones y separa real de proyección.
+	measure 'Última Fecha Datos' = CALCULATE( MAX( Pedidos[Fecha Compra] ), REMOVEFILTERS() )
+		formatString: dd/mm/yyyy
+		isHidden
+		displayFolder: 0. Auxiliares
+		lineageTag: b1e0248b-0f4c-49d0-9efa-0b57830922cd
+
+	/// SUPUESTO: precio × % de costo por macro categoría (tabla 'Supuestos Costos').
+	measure 'Costo Mercadería' = SUM( Items[Costo Mercadería] )
+		formatString: R$ #,0
+		displayFolder: 7. Rentabilidad
+		lineageTag: 6126fa9d-80fd-413d-b7ad-377c69b527cd
+
+	/// SUPUESTO: 3 % de las ventas cobrado por procesadores de pago.
+	measure 'Comisión Medios de Pago' = [Ventas] * 0.03
+		formatString: R$ #,0
+		displayFolder: 7. Rentabilidad
+		lineageTag: 96622d57-0b1e-4652-a1f1-e7aa308961f5
+
+	/// Ingresos por productos - costo de mercadería - comisión de medios de pago. El flete se toma como traslado (lo que se cobra se paga al transportista).
+	measure 'Margen Contribución' = [Ingresos Productos] - [Costo Mercadería] - [Comisión Medios de Pago]
+		formatString: R$ #,0
+		displayFolder: 7. Rentabilidad
+		lineageTag: d78db7c9-bc45-4389-a644-caffa1d031d2
+
+	/// Margen de contribución sobre ingresos por productos.
+	measure '% Margen Contribución' = DIVIDE( [Margen Contribución], [Ingresos Productos] )
+		formatString: 0.0%
+		displayFolder: 7. Rentabilidad
+		lineageTag: 758abc34-1e8b-4f60-aab9-3c8611b8cd36
+
+	measure 'Ventas por Cliente' = DIVIDE( [Ventas], [Cantidad Clientes] )
+		formatString: R$ #,0.00
+		displayFolder: 3. Clientes
+		lineageTag: cedc64bc-7098-42eb-a3f8-27f716bc31d9
+
+	measure 'Margen por Cliente' = DIVIDE( [Margen Contribución], [Cantidad Clientes] )
+		formatString: R$ #,0.00
+		displayFolder: 3. Clientes
+		lineageTag: 30c79590-e5f3-4792-b989-badfb6857e8b
+
+	/// Pareto: margen acumulado de las categorías con margen mayor o igual a la actual, sobre el total.
+	measure '% Acumulado Margen' =
+			VAR MargenActual = [Margen Contribución]
+			VAR Total = CALCULATE( [Margen Contribución], ALLSELECTED( Productos[Categoría] ) )
+			VAR Acumulado =
+			    SUMX(
+			        FILTER( ALLSELECTED( Productos[Categoría] ), [Margen Contribución] >= MargenActual ),
+			        [Margen Contribución]
+			    )
+			RETURN
+			    IF( ISINSCOPE( Productos[Categoría] ), DIVIDE( Acumulado, Total ) )
+		formatString: 0.0%
+		displayFolder: 7. Rentabilidad
+		lineageTag: 0a581294-7507-40af-81f5-c2b54eec8a5e
+
+	/// A = categorías que suman el primer 80 % del margen; B = hasta 95 %; C = el resto.
+	measure 'Clase ABC' =
+			VAR Acum = [% Acumulado Margen]
+			RETURN
+			    IF( NOT ISBLANK( Acum ), SWITCH( TRUE(), Acum <= 0.8, "A", Acum <= 0.95, "B", "C" ) )
+		displayFolder: 7. Rentabilidad
+		lineageTag: a60bcf4a-2233-4dea-9372-e75df26c0951
+
+	/// Cantidad mínima de categorías que generan el 80 % del margen de contribución.
+	measure 'Categorías 80% Margen' =
+			VAR Tabla = ADDCOLUMNS( VALUES( Productos[Categoría] ), "@Margen", [Margen Contribución] )
+			VAR Total = SUMX( Tabla, [@Margen] )
+			VAR ConAcumulado =
+			    ADDCOLUMNS(
+			        Tabla,
+			        "@Previo", VAR M = [@Margen] RETURN SUMX( FILTER( Tabla, [@Margen] > M ), [@Margen] )
+			    )
+			RETURN
+			    COUNTROWS( FILTER( ConAcumulado, [@Previo] < 0.8 * Total ) )
+		formatString: 0
+		displayFolder: 7. Rentabilidad
+		lineageTag: 89963682-2b60-465e-98bf-1515f7be1cc2
+
+	measure 'Cantidad Categorías' = COUNTROWS( FILTER( VALUES( Productos[Categoría] ), NOT ISBLANK( [Ventas] ) ) )
+		formatString: 0
+		displayFolder: 7. Rentabilidad
+		lineageTag: 885b95ea-df41-46a2-ba22-03d8b216abd4
+
+	/// Ej.: '17 de 64 categorías' generan el 80 % del margen.
+	measure 'Texto Pareto' = [Categorías 80% Margen] & " de " & [Cantidad Categorías] & " categorías"
+		displayFolder: 7. Rentabilidad
+		lineageTag: d93c97eb-ec18-41fe-b887-172d5b385151
+
+	/// SUPUESTO: crecimiento objetivo sobre el año anterior (120 % por defecto; se cambia con el parámetro).
+	measure 'Valor Crecimiento Objetivo' = SELECTEDVALUE( 'Crecimiento Objetivo'[Crecimiento Objetivo], 1.2 )
+		formatString: 0%
+		displayFolder: 9. Metas y Proyección
+		lineageTag: 64830fac-142c-4652-b616-d2cebe2f0a4b
+
+	/// Ventas del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Ventas AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Ventas],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: R$ #,0
+		displayFolder: 8. Comparaciones
+		lineageTag: a3d4a03f-a171-40f0-8832-5d47930dcbb2
+
+	/// Meta = ventas del mismo período del año anterior × (1 + crecimiento objetivo). Cortada en la última fecha con datos.
+	measure 'Meta Ventas' = [Ventas AA] * ( 1 + [Valor Crecimiento Objetivo] )
+		formatString: R$ #,0
+		displayFolder: 9. Metas y Proyección
+		lineageTag: eda2e4dc-8059-4219-a367-44a78cc26ddf
+
+	/// Meta del período completo (incluye meses sin datos todavía). Para el plan anual.
+	measure 'Meta Ventas Plan' = CALCULATE( [Ventas], SAMEPERIODLASTYEAR( Calendario[Fecha] ) ) * ( 1 + [Valor Crecimiento Objetivo] )
+		formatString: R$ #,0
+		displayFolder: 9. Metas y Proyección
+		lineageTag: 48aa3128-a280-447e-a567-d63c8ff6dfb9
+
+	measure 'Cumplimiento Meta' = DIVIDE( [Ventas], [Meta Ventas] )
+		formatString: 0%
+		displayFolder: 9. Metas y Proyección
+		lineageTag: d28ff246-0040-4bb8-89f6-25ffa14d0978
+
+	/// Meses futuros: promedio de los últimos 3 meses completos. En el último mes real repite el valor real para que la línea empalme.
+	measure 'Ventas Proyectadas' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			VAR MesUltimo = YEAR( UltimaFecha ) * 100 + MONTH( UltimaFecha )
+			VAR Base =
+			    CALCULATE(
+			        [Ventas],
+			        DATESINPERIOD( Calendario[Fecha], EOMONTH( UltimaFecha, -1 ), -3, MONTH ),
+			        REMOVEFILTERS( Calendario )
+			    ) / 3
+			VAR MesesFuturos = FILTER( VALUES( Calendario[Año Mes Num] ), Calendario[Año Mes Num] > MesUltimo )
+			VAR Proyeccion = SUMX( MesesFuturos, Base )
+			VAR Empalme =
+			    IF( HASONEVALUE( Calendario[Año Mes Num] ) && VALUES( Calendario[Año Mes Num] ) = MesUltimo, [Ventas] )
+			RETURN
+			    IF( COUNTROWS( MesesFuturos ) > 0, Proyeccion, Empalme )
+		formatString: R$ #,0
+		displayFolder: 9. Metas y Proyección
+		lineageTag: b126ecc8-e054-45ca-a7a9-3eef1fbf9f19
+
+	/// Ventas reales del período + proyección de los meses que faltan.
+	measure 'Proyección Cierre Año' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			VAR MesUltimo = YEAR( UltimaFecha ) * 100 + MONTH( UltimaFecha )
+			VAR Base =
+			    CALCULATE(
+			        [Ventas],
+			        DATESINPERIOD( Calendario[Fecha], EOMONTH( UltimaFecha, -1 ), -3, MONTH ),
+			        REMOVEFILTERS( Calendario )
+			    ) / 3
+			VAR MesesFuturos = FILTER( VALUES( Calendario[Año Mes Num] ), Calendario[Año Mes Num] > MesUltimo )
+			RETURN
+			    [Ventas] + COUNTROWS( MesesFuturos ) * Base
+		formatString: R$ #,0
+		displayFolder: 9. Metas y Proyección
+		lineageTag: 3d4ddd6c-3370-49bd-ad46-9faa5e59154f
+
+	measure 'Cumplimiento Proyectado' = DIVIDE( [Proyección Cierre Año], [Meta Ventas Plan] )
+		formatString: 0%
+		displayFolder: 9. Metas y Proyección
+		lineageTag: 175757b6-fc17-412e-9c68-01163179f812
+
+	measure 'Brecha Proyectada vs Meta' = [Proyección Cierre Año] - [Meta Ventas Plan]
+		formatString: R$ #,0
+		displayFolder: 9. Metas y Proyección
+		lineageTag: 01817eda-7a56-49d1-b1fd-07f6c52a641c
+
+	/// Días promedio entre la aprobación del pago y la entrega al transportista (responsabilidad del vendedor).
+	measure 'Días Despacho Vendedor' =
+			AVERAGEX(
+			    FILTER( Pedidos, NOT ISBLANK( Pedidos[Fecha Aprobación] ) && NOT ISBLANK( Pedidos[Fecha Despacho] ) ),
+			    DATEDIFF( Pedidos[Fecha Aprobación], Pedidos[Fecha Despacho], DAY )
+			)
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: d96bbd1d-0c76-43aa-b530-5a20e8129c24
+
+	/// Días promedio entre el despacho y la entrega al cliente (responsabilidad del transportista).
+	measure 'Días Tránsito' =
+			AVERAGEX(
+			    FILTER( Pedidos, NOT ISBLANK( Pedidos[Fecha Despacho] ) && NOT ISBLANK( Pedidos[Fecha Entrega] ) ),
+			    DATEDIFF( Pedidos[Fecha Despacho], Pedidos[Fecha Entrega], DAY )
+			)
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: 73c01655-d76b-44b9-8ffa-3cae75a87e4f
+
+	measure 'Pedidos con Retraso' = CALCULATE( COUNTROWS( Pedidos ), KEEPFILTERS( Pedidos[Estado Entrega] = "Tardío" ) )
+		formatString: #,0
+		displayFolder: 4. Logística
+		lineageTag: 813f11d8-cc33-4b4f-9826-954d1f9c234b
+
+	/// Pedidos tardíos en los que el vendedor despachó fuera de plazo.
+	measure 'Retrasos por Despacho' = CALCULATE( [Pedidos con Retraso], KEEPFILTERS( Items[Despacho Tardío] = TRUE() ) )
+		formatString: #,0
+		displayFolder: 4. Logística
+		lineageTag: bd1bfdd3-43d8-4eee-8e0b-97e0b3db92b5
+
+	/// Pedidos tardíos despachados en plazo: el retraso se produjo en el tránsito.
+	measure 'Retrasos por Tránsito' = VAR Tarde = [Pedidos con Retraso] RETURN IF( NOT ISBLANK( Tarde ), Tarde - [Retrasos por Despacho] )
+		formatString: #,0
+		displayFolder: 4. Logística
+		lineageTag: f3562913-aba7-4c0b-a5bb-b79cb51ffcbf
+
+	measure '% Retrasos por Despacho' = DIVIDE( [Retrasos por Despacho], [Pedidos con Retraso] )
+		formatString: 0%
+		displayFolder: 4. Logística
+		lineageTag: e9292b55-7e8b-4bde-962c-c1c0b0066ad8
+
+	measure '% Despacho Fuera de Plazo' = DIVIDE( CALCULATE( COUNTROWS( Pedidos ), KEEPFILTERS( Items[Despacho Tardío] = TRUE() ) ), [Cantidad Pedidos] )
+		formatString: 0.0%
+		displayFolder: 4. Logística
+		lineageTag: 773d739a-89c1-4d15-83a0-a58b97921fd7
+
+	measure 'Costo Envío % Ventas' = DIVIDE( [Costo Envío Total], [Ventas] )
+		formatString: 0.0%
+		displayFolder: 4. Logística
+		lineageTag: 92450d54-abbf-40dc-963c-98d7d5d7a376
+
+	/// Solo vendedores con 50 pedidos o más (muestra representativa).
+	measure 'Pedidos Vendedor' = IF( [Cantidad Pedidos] >= 50, [Cantidad Pedidos] )
+		formatString: #,0
+		displayFolder: 4. Logística
+		lineageTag: 960366e4-3e92-429a-bba4-3d9ee286c67e
+
+	measure '% Retraso Vendedor' = IF( [Cantidad Pedidos] >= 50, [% Entregas con Retraso] )
+		formatString: 0.0%
+		displayFolder: 4. Logística
+		lineageTag: ba03e5c4-b861-4811-840f-e6d71530849d
+
+	measure 'Días Despacho Vendedor (≥50)' = IF( [Cantidad Pedidos] >= 50, [Días Despacho Vendedor] )
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: f3a9c83d-4dc1-4804-a815-e838f5e4f283
+
+	/// Clientes cuya primera compra cae en el período.
+	measure 'Clientes Nuevos' =
+			VAR Desde = MIN( Calendario[Fecha] )
+			VAR Hasta = MAX( Calendario[Fecha] )
+			RETURN
+			    COUNTROWS( FILTER( Clientes, Clientes[Fecha Primera Compra] >= Desde && Clientes[Fecha Primera Compra] <= Hasta ) )
+		formatString: #,0
+		displayFolder: 3. Clientes
+		lineageTag: 9a77eba4-3f2e-40e0-a9fe-03fc5f2737c5
+
+	measure 'Valor Reducción Retrasos' = SELECTEDVALUE( 'Reducción Retrasos'[Reducción Retrasos], 0.5 )
+		formatString: 0%
+		displayFolder: 10. Escenarios
+		lineageTag: a45ec735-db2a-4103-99b0-49c2aafc2227
+
+	measure 'Puntaje A Tiempo' = CALCULATE( [Puntaje Promedio], KEEPFILTERS( Pedidos[Estado Entrega] = "A Tiempo" ) )
+		formatString: 0.00
+		displayFolder: 10. Escenarios
+		lineageTag: 34fb30fd-6743-4847-881e-2d0efb031b7b
+
+	measure 'Puntaje Tardío' = CALCULATE( [Puntaje Promedio], KEEPFILTERS( Pedidos[Estado Entrega] = "Tardío" ) )
+		formatString: 0.00
+		displayFolder: 10. Escenarios
+		lineageTag: aa2ba7c9-767b-4869-966c-2845cbd193d2
+
+	/// Puntaje estimado si la fracción elegida de entregas tardías llegara a tiempo y puntuara como las entregas a tiempo.
+	measure 'Puntaje Escenario' =
+			VAR ResenasTarde = CALCULATE( [Cantidad Reseñas], KEEPFILTERS( Pedidos[Estado Entrega] = "Tardío" ) )
+			RETURN
+			    [Puntaje Promedio]
+			        + DIVIDE( ResenasTarde * [Valor Reducción Retrasos] * ( [Puntaje A Tiempo] - [Puntaje Tardío] ), [Cantidad Reseñas] )
+		formatString: 0.00
+		displayFolder: 10. Escenarios
+		lineageTag: 7e97a474-95c7-4eac-9aa1-38ebda016df8
+
+	measure '% Retraso Escenario' = [% Entregas con Retraso] * ( 1 - [Valor Reducción Retrasos] )
+		formatString: 0.0%
+		displayFolder: 10. Escenarios
+		lineageTag: 9c5761b6-1668-4200-9da0-33bc07cb7841
+
+	measure 'Mejora Puntaje Escenario' = [Puntaje Escenario] - [Puntaje Promedio]
+		formatString: +0.00;-0.00;0.00
+		displayFolder: 10. Escenarios
+		lineageTag: 1429f467-1a0d-4d12-a7e0-a23fa1d9dc1f
+
+	measure 'Δ Ventas Flecha' =
+			VAR Actual = [Ventas]
+			VAR Anterior = [Ventas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ventas Texto' =
+			VAR Actual = [Ventas]
+			VAR Anterior = [Ventas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ventas Color' =
+			VAR Actual = [Ventas]
+			VAR Anterior = [Ventas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Ingresos Productos del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Ingresos Productos AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Ingresos Productos],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ingresos Productos Flecha' =
+			VAR Actual = [Ingresos Productos]
+			VAR Anterior = [Ingresos Productos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ingresos Productos Texto' =
+			VAR Actual = [Ingresos Productos]
+			VAR Anterior = [Ingresos Productos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ingresos Productos Color' =
+			VAR Actual = [Ingresos Productos]
+			VAR Anterior = [Ingresos Productos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Margen Contribución del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Margen Contribución AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Margen Contribución],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen Contribución Flecha' =
+			VAR Actual = [Margen Contribución]
+			VAR Anterior = [Margen Contribución AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen Contribución Texto' =
+			VAR Actual = [Margen Contribución]
+			VAR Anterior = [Margen Contribución AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen Contribución Color' =
+			VAR Actual = [Margen Contribución]
+			VAR Anterior = [Margen Contribución AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// % Margen Contribución del mismo período del año anterior, cortado en la última fecha con datos.
+	measure '% Margen Contribución AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [% Margen Contribución],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0%
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Margen Contribución Flecha' =
+			VAR Actual = [% Margen Contribución]
+			VAR Anterior = [% Margen Contribución AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Margen Contribución Texto' =
+			VAR Actual = [% Margen Contribución]
+			VAR Anterior = [% Margen Contribución AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Margen Contribución Color' =
+			VAR Actual = [% Margen Contribución]
+			VAR Anterior = [% Margen Contribución AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Ticket Medio del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Ticket Medio AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Ticket Medio],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ticket Medio Flecha' =
+			VAR Actual = [Ticket Medio]
+			VAR Anterior = [Ticket Medio AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ticket Medio Texto' =
+			VAR Actual = [Ticket Medio]
+			VAR Anterior = [Ticket Medio AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ticket Medio Color' =
+			VAR Actual = [Ticket Medio]
+			VAR Anterior = [Ticket Medio AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Cantidad Pedidos del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Cantidad Pedidos AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Cantidad Pedidos],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Pedidos Flecha' =
+			VAR Actual = [Cantidad Pedidos]
+			VAR Anterior = [Cantidad Pedidos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Pedidos Texto' =
+			VAR Actual = [Cantidad Pedidos]
+			VAR Anterior = [Cantidad Pedidos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Pedidos Color' =
+			VAR Actual = [Cantidad Pedidos]
+			VAR Anterior = [Cantidad Pedidos AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Cantidad Clientes del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Cantidad Clientes AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Cantidad Clientes],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Clientes Flecha' =
+			VAR Actual = [Cantidad Clientes]
+			VAR Anterior = [Cantidad Clientes AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Clientes Texto' =
+			VAR Actual = [Cantidad Clientes]
+			VAR Anterior = [Cantidad Clientes AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Clientes Color' =
+			VAR Actual = [Cantidad Clientes]
+			VAR Anterior = [Cantidad Clientes AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// % Clientes Recurrentes del mismo período del año anterior, cortado en la última fecha con datos.
+	measure '% Clientes Recurrentes AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [% Clientes Recurrentes],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0%
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Clientes Recurrentes Flecha' =
+			VAR Actual = [% Clientes Recurrentes]
+			VAR Anterior = [% Clientes Recurrentes AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Clientes Recurrentes Texto' =
+			VAR Actual = [% Clientes Recurrentes]
+			VAR Anterior = [% Clientes Recurrentes AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Clientes Recurrentes Color' =
+			VAR Actual = [% Clientes Recurrentes]
+			VAR Anterior = [% Clientes Recurrentes AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Ventas por Cliente del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Ventas por Cliente AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Ventas por Cliente],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ventas por Cliente Flecha' =
+			VAR Actual = [Ventas por Cliente]
+			VAR Anterior = [Ventas por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ventas por Cliente Texto' =
+			VAR Actual = [Ventas por Cliente]
+			VAR Anterior = [Ventas por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Ventas por Cliente Color' =
+			VAR Actual = [Ventas por Cliente]
+			VAR Anterior = [Ventas por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Margen por Cliente del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Margen por Cliente AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Margen por Cliente],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen por Cliente Flecha' =
+			VAR Actual = [Margen por Cliente]
+			VAR Anterior = [Margen por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen por Cliente Texto' =
+			VAR Actual = [Margen por Cliente]
+			VAR Anterior = [Margen por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Margen por Cliente Color' =
+			VAR Actual = [Margen por Cliente]
+			VAR Anterior = [Margen por Cliente AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// % Entregas con Retraso del mismo período del año anterior, cortado en la última fecha con datos.
+	measure '% Entregas con Retraso AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [% Entregas con Retraso],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0%
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Entregas con Retraso Flecha' =
+			VAR Actual = [% Entregas con Retraso]
+			VAR Anterior = [% Entregas con Retraso AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Entregas con Retraso Texto' =
+			VAR Actual = [% Entregas con Retraso]
+			VAR Anterior = [% Entregas con Retraso AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Entregas con Retraso Color' =
+			VAR Actual = [% Entregas con Retraso]
+			VAR Anterior = [% Entregas con Retraso AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta < 0, "#0CA30C",
+			        Delta > 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Días Entrega Promedio del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Días Entrega Promedio AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Días Entrega Promedio],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Entrega Promedio Flecha' =
+			VAR Actual = [Días Entrega Promedio]
+			VAR Anterior = [Días Entrega Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Entrega Promedio Texto' =
+			VAR Actual = [Días Entrega Promedio]
+			VAR Anterior = [Días Entrega Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Entrega Promedio Color' =
+			VAR Actual = [Días Entrega Promedio]
+			VAR Anterior = [Días Entrega Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta < 0, "#0CA30C",
+			        Delta > 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Días Despacho Vendedor del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Días Despacho Vendedor AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Días Despacho Vendedor],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Despacho Vendedor Flecha' =
+			VAR Actual = [Días Despacho Vendedor]
+			VAR Anterior = [Días Despacho Vendedor AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Despacho Vendedor Texto' =
+			VAR Actual = [Días Despacho Vendedor]
+			VAR Anterior = [Días Despacho Vendedor AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Despacho Vendedor Color' =
+			VAR Actual = [Días Despacho Vendedor]
+			VAR Anterior = [Días Despacho Vendedor AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta < 0, "#0CA30C",
+			        Delta > 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Días Tránsito del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Días Tránsito AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Días Tránsito],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Tránsito Flecha' =
+			VAR Actual = [Días Tránsito]
+			VAR Anterior = [Días Tránsito AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Tránsito Texto' =
+			VAR Actual = [Días Tránsito]
+			VAR Anterior = [Días Tránsito AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0" ) & " días" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Días Tránsito Color' =
+			VAR Actual = [Días Tránsito]
+			VAR Anterior = [Días Tránsito AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta < 0, "#0CA30C",
+			        Delta > 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Costo Envío % Ventas del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Costo Envío % Ventas AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Costo Envío % Ventas],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0%
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Costo Envío % Ventas Flecha' =
+			VAR Actual = [Costo Envío % Ventas]
+			VAR Anterior = [Costo Envío % Ventas AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Costo Envío % Ventas Texto' =
+			VAR Actual = [Costo Envío % Ventas]
+			VAR Anterior = [Costo Envío % Ventas AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Costo Envío % Ventas Color' =
+			VAR Actual = [Costo Envío % Ventas]
+			VAR Anterior = [Costo Envío % Ventas AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta < 0, "#0CA30C",
+			        Delta > 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Puntaje Promedio del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Puntaje Promedio AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Puntaje Promedio],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.00
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Puntaje Promedio Flecha' =
+			VAR Actual = [Puntaje Promedio]
+			VAR Anterior = [Puntaje Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Puntaje Promedio Texto' =
+			VAR Actual = [Puntaje Promedio]
+			VAR Anterior = [Puntaje Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.00" ) & " pts" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Puntaje Promedio Color' =
+			VAR Actual = [Puntaje Promedio]
+			VAR Anterior = [Puntaje Promedio AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// % Reseñas Positivas (4-5) del mismo período del año anterior, cortado en la última fecha con datos.
+	measure '% Reseñas Positivas (4-5) AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [% Reseñas Positivas (4-5)],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: 0.0%
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Reseñas Positivas (4-5) Flecha' =
+			VAR Actual = [% Reseñas Positivas (4-5)]
+			VAR Anterior = [% Reseñas Positivas (4-5) AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Reseñas Positivas (4-5) Texto' =
+			VAR Actual = [% Reseñas Positivas (4-5)]
+			VAR Anterior = [% Reseñas Positivas (4-5) AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ) * 100, "0.0" ) & " pp" & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ % Reseñas Positivas (4-5) Color' =
+			VAR Actual = [% Reseñas Positivas (4-5)]
+			VAR Anterior = [% Reseñas Positivas (4-5) AA]
+			VAR Delta = Actual - Anterior
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	/// Cantidad Reseñas del mismo período del año anterior, cortado en la última fecha con datos.
+	measure 'Cantidad Reseñas AA' =
+			VAR UltimaFecha = [Última Fecha Datos]
+			RETURN
+			    CALCULATE(
+			        [Cantidad Reseñas],
+			        SAMEPERIODLASTYEAR( FILTER( VALUES( Calendario[Fecha] ), Calendario[Fecha] <= UltimaFecha ) )
+			    )
+		formatString: #,0
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Reseñas Flecha' =
+			VAR Actual = [Cantidad Reseñas]
+			VAR Anterior = [Cantidad Reseñas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "●",
+			        IF( Delta > 0, "▲", IF( Delta < 0, "▼", "●" ) )
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Reseñas Texto' =
+			VAR Actual = [Cantidad Reseñas]
+			VAR Anterior = [Cantidad Reseñas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    IF(
+			        ISBLANK( Actual ) || ISBLANK( Anterior ),
+			        "sin dato del año anterior",
+			        FORMAT( ABS( Delta ), "0.0%" ) & " vs. año anterior"
+			    )
+		displayFolder: 8. Comparaciones
+
+	measure 'Δ Cantidad Reseñas Color' =
+			VAR Actual = [Cantidad Reseñas]
+			VAR Anterior = [Cantidad Reseñas AA]
+			VAR Delta = DIVIDE( Actual - Anterior, Anterior )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( Actual ) || ISBLANK( Anterior ), "#8A96B3",
+			        Delta > 0, "#0CA30C",
+			        Delta < 0, "#EC835A",
+			        "#8A96B3"
+			    )
+		isHidden
+		displayFolder: 8. Comparaciones
+
+	measure 'Texto Fecha Datos' = "Datos al " & FORMAT( [Última Fecha Datos], "dd/mm/yyyy" )
+		displayFolder: 0. Auxiliares
+
+	/// % de clientes de la cohorte que volvieron a comprar N meses después de su primera compra.
+	measure 'Retención Cohorte' =
+			VAR Mes = SELECTEDVALUE( 'Meses de Vida'[Mes de Vida] )
+			VAR UltimaFecha = [Última Fecha Datos]
+			VAR InicioCohorte = EOMONTH( MIN( Clientes[Fecha Primera Compra] ), -1 ) + 1
+			VAR Base = COUNTROWS( Clientes )
+			VAR Activos =
+			    IF(
+			        Mes = 0,
+			        Base,
+			        CALCULATE(
+			            COUNTROWS( Recompras ),
+			            TREATAS( VALUES( Clientes[ID Cliente] ), Recompras[ID Cliente] ),
+			            Recompras[Mes de Vida] = Mes
+			        )
+			    )
+			RETURN
+			    -- cohortes con menos de 30 clientes no son representativas
+			    IF(
+			        NOT ISBLANK( Mes ) && Base >= 30 && EOMONTH( InicioCohorte, Mes ) <= EOMONTH( UltimaFecha, 0 ),
+			        DIVIDE( Activos, Base )
+			    )
+		formatString: 0.0%
+		displayFolder: 3. Clientes
+
+	measure 'Texto Meta Anual' = "Meta anual: " & FORMAT( [Meta Ventas Plan] / 1000000, "R$ #,0.0" ) & " M"
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Meta Ventas Flecha' = IF( ISBLANK( [Cumplimiento Meta] ), "●", "◆" )
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Meta Ventas Texto' =
+			VAR C = [Cumplimiento Meta]
+			RETURN
+			    IF( ISBLANK( C ), "sin meta para el período", FORMAT( C, "0%" ) & " de la meta" )
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Meta Ventas Color' = SWITCH( TRUE(), ISBLANK( [Cumplimiento Meta] ), "#8A96B3", [Cumplimiento Meta] >= 1, "#0CA30C", [Cumplimiento Meta] >= 0.9, "#FAB219", "#EC835A" )
+		isHidden
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Cumplimiento Proyectado Color' = SWITCH( TRUE(), ISBLANK( [Cumplimiento Proyectado] ), "#8A96B3", [Cumplimiento Proyectado] >= 1, "#0CA30C", [Cumplimiento Proyectado] >= 0.9, "#FAB219", "#EC835A" )
+		isHidden
+		displayFolder: 9. Metas y Proyección
+
+	measure 'Cumplimiento Proyectado Texto' =
+			VAR C = [Cumplimiento Proyectado]
+			RETURN
+			    IF( ISBLANK( C ), "sin meta", FORMAT( C, "0%" ) & " de la meta anual" )
+		displayFolder: 9. Metas y Proyección
+
+	/// Bala de cumplimiento de meta: barra = cumplimiento (0-150 %), marca blanca = 100 %.
+	measure 'SVG Cumplimiento Meta' =
+			VAR C = [Cumplimiento Meta]
+			-- ancho con 3 dígitos: ordenar la columna alfabéticamente equivale a ordenar por cumplimiento
+			VAR Ancho = FORMAT( ROUND( MIN( C, 1.5 ) / 1.5 * 95, 0 ), "000" )
+			VAR Color = SUBSTITUTE( SWITCH( TRUE(), ISBLANK( C ), "#8A96B3", C >= 1, "#0CA30C", C >= 0.9, "#FAB219", "#D03B3B" ), "#", "%23" )
+			VAR Texto = SUBSTITUTE( FORMAT( C, "0%" ), "%", "%25" )
+			RETURN
+			    IF(
+			        NOT ISBLANK( C ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='20'>"
+			            & "<rect x='0' y='6' width='95' height='8' rx='4' fill='%231F2B4D'/>"
+			            & "<rect x='0' y='6' width='" & Ancho & "' height='8' rx='4' fill='" & Color & "'/>"
+			            & "<rect x='62.3' y='2' width='2' height='16' rx='1' fill='%23E6EAF2'/>"
+			            & "<text x='103' y='14' font-family='Segoe UI' font-size='11' fill='%23E6EAF2'>" & Texto & "</text></svg>"
+			    )
+		dataCategory: ImageUrl
+		displayFolder: 6. Visuales SVG
+
+	/// Celda de mapa de calor: intensidad azul según la retención (escala 0-1 %, saturada arriba).
+	measure 'SVG Retención' =
+			VAR R = [Retención Cohorte]
+			VAR Mes = SELECTEDVALUE( 'Meses de Vida'[Mes de Vida] )
+			VAR Intensidad = IF( Mes = 0, 0, MIN( R / 0.01, 1 ) )
+			VAR Texto = SUBSTITUTE( FORMAT( R, IF( Mes = 0, "0%", "0.0%" ) ), "%", "%25" )
+			RETURN
+			    IF(
+			        NOT ISBLANK( R ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='58' height='22'>"
+			            & "<rect x='1' y='1' width='56' height='20' rx='3' fill='%23172243'/>"
+			            & "<rect x='1' y='1' width='56' height='20' rx='3' fill='%233B78F0' fill-opacity='"
+			            & SUBSTITUTE( FORMAT( Intensidad, "0.00" ), ",", "." ) & "'/>"
+			            & "<text x='29' y='15' text-anchor='middle' font-family='Segoe UI' font-size='10' fill='%23E6EAF2'>"
+			            & Texto & "</text></svg>"
+			    )
+		dataCategory: ImageUrl
+		displayFolder: 6. Visuales SVG
+
+	/// Barra de margen por categoría (color por clase ABC) con el % acumulado del Pareto.
+	measure 'SVG Barra Margen' =
+			VAR M = [Margen Contribución]
+			VAR Maximo = MAXX( ALLSELECTED( Productos[Categoría] ), [Margen Contribución] )
+			VAR Ancho = MAX( ROUND( DIVIDE( M, Maximo ) * 80, 0 ), 1 )
+			VAR Clase = [Clase ABC]
+			VAR Color = SWITCH( Clase, "A", "%233B78F0", "B", "%232C5AB5", "%23344266" )
+			VAR Texto = SUBSTITUTE( FORMAT( [% Acumulado Margen], "0%" ), "%", "%25" )
+			RETURN
+			    IF(
+			        ISINSCOPE( Productos[Categoría] ) && NOT ISBLANK( M ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='20'>"
+			            & "<rect x='0' y='6' width='" & Ancho & "' height='8' rx='4' fill='" & Color & "'/>"
+			            & "<text x='88' y='14' font-family='Segoe UI' font-size='10.5' fill='%238A96B3'>acum. " & Texto & "</text></svg>"
+			    )
+		dataCategory: ImageUrl
+		displayFolder: 6. Visuales SVG
+
+	/// Cinco estrellas sin el número, para columnas angostas.
+	measure 'SVG Estrellas Compactas' =
+			VAR Puntaje = [Puntaje Promedio]
+			VAR Ancho = ROUND( DIVIDE( Puntaje, 5 ) * 84, 0 )
+			VAR Fila =
+			    "<use xlink:href='%23e'/><use xlink:href='%23e' x='17'/><use xlink:href='%23e' x='34'/>"
+			        & "<use xlink:href='%23e' x='51'/><use xlink:href='%23e' x='68'/>"
+			RETURN
+			    IF(
+			        NOT ISBLANK( Puntaje ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='86' height='18'>"
+			            & "<defs><polygon id='e' points='8,1 10,6 15.5,6 11,9.5 12.8,15 8,11.8 3.2,15 5,9.5 0.5,6 6,6'/>"
+			            & "<clipPath id='c'><rect width='" & Ancho & "' height='18'/></clipPath></defs>"
+			            & "<g fill='%232A3658'>" & Fila & "</g>"
+			            & "<g fill='%23F5B83D' clip-path='url(%23c)'>" & Fila & "</g></svg>"
+			    )
+		dataCategory: ImageUrl
+		displayFolder: 6. Visuales SVG
+
+	measure 'SVG Puntaje Vendedor' = IF( [Cantidad Pedidos] >= 50, [SVG Estrellas Compactas] )
+		dataCategory: ImageUrl
+		displayFolder: 6. Visuales SVG
 
 	column Oculta
 		isHidden

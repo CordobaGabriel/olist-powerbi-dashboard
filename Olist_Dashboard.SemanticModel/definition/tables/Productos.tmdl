@@ -35,6 +35,12 @@ table Productos
 
 		annotation SummarizationSetBy = Automatic
 
+	/// SUPUESTO tomado de la tabla 'Supuestos Costos' (60 % si la categoría no figura).
+	column '% Costo Mercadería' = LOOKUPVALUE( 'Supuestos Costos'[% Costo Mercadería], 'Supuestos Costos'[Macro Categoría], Productos[Macro Categoría], 0.6 )
+		formatString: 0%
+		lineageTag: ee12043c-fed8-481b-ba2b-152139914d2c
+		summarizeBy: none
+
 	partition Productos = m
 		mode: import
 		source =

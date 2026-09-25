@@ -55,15 +55,6 @@ table Clientes
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'Orden Frecuencia Compra' = SWITCH( Clientes[Frecuencia Compra (origen)], "Compra Única", 1, "2-3 Compras", 2, "4-5 Compras", 3, "6-7 Compras", 4, "9 o más Compras", 5, 99 )
-		isHidden
-		summarizeBy: none
-
-	/// Copia de la columna de origen para poder ordenarla por 'Orden Frecuencia Compra' sin dependencia circular.
-	column 'Frecuencia Compra' = Clientes[Frecuencia Compra (origen)]
-		summarizeBy: none
-		sortByColumn: 'Orden Frecuencia Compra'
-
 	column 'Score Frecuencia'
 		dataType: int64
 		formatString: 0
@@ -76,6 +67,32 @@ table Clientes
 	/// Recurrente = cliente con más de un pedido (no más de un ítem).
 	column 'Tipo Cliente' = IF( COUNTROWS( RELATEDTABLE( Pedidos ) ) > 1, "Recurrente", "Nuevo" )
 		lineageTag: 8aed6d4c-0011-42ee-aeee-113751211961
+
+	column 'Orden Frecuencia Compra' = SWITCH( Clientes[Frecuencia Compra (origen)], "Compra Única", 1, "2-3 Compras", 2, "4-5 Compras", 3, "6-7 Compras", 4, "9 o más Compras", 5, 99 )
+		isHidden
+		lineageTag: a183d257-ca8a-475a-95e9-feef0bfeae9d
+		summarizeBy: none
+
+	/// Copia de la columna de origen para poder ordenarla por 'Orden Frecuencia Compra' sin dependencia circular.
+	column 'Frecuencia Compra' = Clientes[Frecuencia Compra (origen)]
+		lineageTag: 088a67ff-49f9-44b0-8a10-150c451ae0c3
+		summarizeBy: none
+		sortByColumn: 'Orden Frecuencia Compra'
+
+	column 'Fecha Primera Compra' = LOOKUPVALUE( 'Primeras Compras'[Fecha Primera Compra], 'Primeras Compras'[ID Cliente], Clientes[ID Cliente] )
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: e0bbe2ec-1126-479d-ac26-2fa71c7c1d6b
+
+	column 'Cohorte Num' = YEAR( Clientes[Fecha Primera Compra] ) * 100 + MONTH( Clientes[Fecha Primera Compra] )
+		isHidden
+		lineageTag: 96badc5d-90f8-4e50-9e4e-69f2f9ca076b
+		summarizeBy: none
+
+	/// Mes de la primera compra del cliente.
+	column Cohorte = FORMAT( Clientes[Fecha Primera Compra], "yyyy-mm" )
+		lineageTag: 20a86733-2b9f-47c5-bad5-02e2aa21fe16
+		sortByColumn: 'Cohorte Num'
 
 	partition Clientes = m
 		mode: import

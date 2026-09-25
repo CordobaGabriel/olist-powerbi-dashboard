@@ -1,0 +1,15 @@
+/// Meses transcurridos desde la primera compra del cliente (0 = mes de la primera compra). Columnas de la matriz de cohortes.
+table 'Meses de Vida'
+	lineageTag: b46b6f5e-cffe-4acc-b9b2-1a0301269362
+
+	column 'Mes de Vida'
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mes de Vida]
+
+	partition 'Meses de Vida' = calculated
+		mode: import
+		source = SELECTCOLUMNS( GENERATESERIES( 0, 6, 1 ), "Mes de Vida", [Value] )
+

@@ -1,141 +1,410 @@
 {
-  "canvas": { "width": 1280, "height": 720 },
+  "canvas": {
+    "width": 1280,
+    "height": 720
+  },
+  "font": "Segoe UI",
   "palette": {
     "bg": "#0A1128",
     "rail": "#0D1631",
     "panel": "#111B38",
+    "panel_hi": "#16213F",
     "border": "#1F2B4D",
     "text": "#E6EAF2",
+    "text2": "#B4BDD3",
     "muted": "#8A96B3",
-    "blue": "#2F6BFF",
-    "coral": "#F2603F",
-    "teal": "#22C3B5",
-    "amber": "#F5B83D",
-    "violet": "#9B7BFF"
+    "series": [
+      "#3B78F0",
+      "#D95926",
+      "#199E70",
+      "#C98500",
+      "#9085E9"
+    ],
+    "context": "#5B6785",
+    "good": "#0CA30C",
+    "warning": "#FAB219",
+    "serious": "#EC835A",
+    "critical": "#D03B3B"
   },
   "rail": {
-    "x": 0, "y": 0, "w": 200, "h": 720,
-    "logo": { "x": 20, "y": 20, "w": 40, "h": 40 },
-    "nav": { "x": 12, "y": 92, "w": 176, "h": 230 },
-    "filters_label_y": 346,
-    "slicers": [
-      { "id": "anio",      "field": "Calendario[Año]",          "x": 12, "y": 368, "w": 176, "h": 56 },
-      { "id": "tipo",      "field": "Clientes[Tipo Cliente]",   "x": 12, "y": 432, "w": 176, "h": 56 },
-      { "id": "region",    "field": "Clientes[Región]",         "x": 12, "y": 496, "w": 176, "h": 56 },
-      { "id": "macro",     "field": "Productos[Macro Categoría]", "x": 12, "y": 560, "w": 176, "h": 56 },
-      { "id": "categoria", "field": "Productos[Categoría]",     "x": 12, "y": 624, "w": 176, "h": 56 }
+    "w": 200,
+    "logo": {
+      "x": 24,
+      "y": 24,
+      "size": 36
+    },
+    "nav": {
+      "x": 12,
+      "y": 100,
+      "w": 176,
+      "h": 40,
+      "gap": 6
+    },
+    "footer": {
+      "x": 24,
+      "y": 628,
+      "w": 160,
+      "h": 22
+    }
+  },
+  "header": {
+    "title": {
+      "x": 224,
+      "y": 22
+    },
+    "filters": [
+      {
+        "id": "anio",
+        "field": "Calendario[Año]",
+        "x": 822,
+        "y": 20,
+        "w": 100,
+        "h": 50,
+        "default": 2018
+      },
+      {
+        "id": "macro",
+        "field": "Productos[Macro Categoría]",
+        "x": 934,
+        "y": 20,
+        "w": 160,
+        "h": 50
+      },
+      {
+        "id": "region",
+        "field": "Clientes[Región]",
+        "x": 1106,
+        "y": 20,
+        "w": 150,
+        "h": 50
+      }
     ]
   },
-  "header": { "x": 224, "y": 20 },
+  "content": {
+    "x": 224,
+    "w": 1032,
+    "kpi_y": 88,
+    "kpi_h": 124,
+    "gap": 16,
+    "charts_y": 232,
+    "charts_h": 464
+  },
+  "grids": {
+    "G1": {
+      "left": {
+        "x": 224,
+        "y": 232,
+        "w": 620,
+        "h": 464
+      },
+      "rtop": {
+        "x": 860,
+        "y": 232,
+        "w": 396,
+        "h": 288
+      },
+      "rbot": {
+        "x": 860,
+        "y": 536,
+        "w": 396,
+        "h": 160
+      }
+    },
+    "G2": {
+      "left": {
+        "x": 224,
+        "y": 232,
+        "w": 508,
+        "h": 464
+      },
+      "rtop": {
+        "x": 748,
+        "y": 232,
+        "w": 508,
+        "h": 304
+      },
+      "rbot": {
+        "x": 748,
+        "y": 552,
+        "w": 508,
+        "h": 144
+      }
+    },
+    "G3": {
+      "left": {
+        "x": 224,
+        "y": 232,
+        "w": 620,
+        "h": 464
+      },
+      "right": {
+        "x": 860,
+        "y": 232,
+        "w": 396,
+        "h": 464
+      }
+    },
+    "G4": {
+      "left": {
+        "x": 224,
+        "y": 232,
+        "w": 560,
+        "h": 464
+      },
+      "rtop": {
+        "x": 800,
+        "y": 232,
+        "w": 456,
+        "h": 218
+      },
+      "rbot": {
+        "x": 800,
+        "y": 466,
+        "w": 456,
+        "h": 230
+      }
+    },
+    "G5": {
+      "left": {
+        "x": 224,
+        "y": 232,
+        "w": 620,
+        "h": 464
+      },
+      "rtop": {
+        "x": 860,
+        "y": 232,
+        "w": 396,
+        "h": 188
+      },
+      "rbot": {
+        "x": 860,
+        "y": 436,
+        "w": 396,
+        "h": 260
+      }
+    }
+  },
   "pages": [
     {
       "id": "resumen",
-      "name": "Resumen Ejecutivo",
-      "subtitle": "Olist · E-commerce Brasil · oct 2016 – ago 2018",
+      "name": "Resumen",
+      "title": "Resumen de Dirección",
+      "subtitle": "Cómo venimos contra la meta y el año anterior",
+      "grid": "G1",
       "kpis": [
-        { "measure": "Ventas", "accent": "blue" },
-        { "measure": "Cantidad Pedidos", "accent": "teal" },
-        { "measure": "Ticket Medio", "accent": "violet" },
-        { "measure": "Cantidad Clientes", "accent": "amber" },
-        { "measure": "% Entregas con Retraso", "accent": "coral" },
-        { "measure": "Puntaje Promedio", "accent": "teal" }
+        {
+          "label": "Ventas",
+          "measure": "Ventas",
+          "delta": "Ventas",
+          "extra": "meta"
+        },
+        {
+          "label": "Margen de contribución",
+          "measure": "Margen Contribución",
+          "delta": "Margen Contribución"
+        },
+        {
+          "label": "% Margen",
+          "measure": "% Margen Contribución",
+          "delta": "% Margen Contribución"
+        },
+        {
+          "label": "Entregas con retraso",
+          "measure": "% Entregas con Retraso",
+          "delta": "% Entregas con Retraso"
+        },
+        {
+          "label": "Puntaje de reseñas",
+          "measure": "Puntaje Promedio",
+          "delta": "Puntaje Promedio"
+        }
       ],
-      "grid": "A",
-      "visuals": [
-        { "slot": "main", "type": "lineChart", "title": "Ventas y pedidos por mes" },
-        { "slot": "side1", "type": "filledMap", "title": "Ventas por estado" },
-        { "slot": "side2", "type": "barChart", "title": "Ventas por macro categoría" }
-      ]
+      "panels": {
+        "left": {
+          "title": "Ventas mensuales vs. meta y año anterior",
+          "subtitle": "Meta = mismo mes del año anterior + 120 % (supuesto editable en Planificación)"
+        },
+        "rtop": {
+          "title": "Cumplimiento de meta por macro categoría",
+          "subtitle": "Ordenado de menor a mayor · la marca blanca es el 100 %"
+        },
+        "rbot": {
+          "insight": "Proyección de cierre del año"
+        }
+      }
     },
     {
-      "id": "productos",
-      "name": "Productos",
-      "subtitle": "Ventas y pedidos por categoría",
+      "id": "rentabilidad",
+      "name": "Rentabilidad",
+      "title": "Rentabilidad",
+      "subtitle": "Dónde se gana el margen y cuánto depende de pocas categorías",
+      "grid": "G2",
       "kpis": [
-        { "measure": "Ventas", "accent": "blue" },
-        { "measure": "Ingresos Productos", "accent": "teal" },
-        { "measure": "Cantidad Ítems", "accent": "violet" },
-        { "measure": "Ticket Medio", "accent": "amber" }
+        {
+          "label": "Ingresos por productos",
+          "measure": "Ingresos Productos",
+          "delta": "Ingresos Productos"
+        },
+        {
+          "label": "Costo de mercadería (supuesto)",
+          "measure": "Costo Mercadería"
+        },
+        {
+          "label": "Margen de contribución",
+          "measure": "Margen Contribución",
+          "delta": "Margen Contribución"
+        },
+        {
+          "label": "% Margen",
+          "measure": "% Margen Contribución",
+          "delta": "% Margen Contribución"
+        }
       ],
-      "grid": "B",
-      "visuals": [
-        { "slot": "top", "type": "lineClusteredColumnComboChart", "title": "Pedidos y ventas por macro categoría" },
-        { "slot": "bottom1", "type": "tableEx", "title": "Detalle por macro categoría" },
-        { "slot": "bottom2", "type": "barChart", "title": "Top 10 categorías por ventas" }
-      ]
+      "panels": {
+        "left": {
+          "title": "Margen de contribución por macro categoría",
+          "subtitle": "Ingresos − costo de mercadería (supuesto) − 3 % de comisión de pago"
+        },
+        "rtop": {
+          "title": "Pareto de categorías por margen",
+          "subtitle": "Barra: margen · color: clase ABC · % acumulado del total"
+        },
+        "rbot": {
+          "insight": "Concentración del margen",
+          "note": "generan el 80 % del margen de contribución"
+        }
+      }
     },
     {
-      "id": "logistica",
-      "name": "Logística",
-      "subtitle": "Tiempos de entrega, retrasos y costos de envío",
+      "id": "operacion",
+      "name": "Operación",
+      "title": "Operación logística",
+      "subtitle": "Qué causa los retrasos y qué vendedores revisar primero",
+      "grid": "G3",
       "kpis": [
-        { "measure": "% Entregas con Retraso", "accent": "coral" },
-        { "measure": "Días Entrega Promedio", "accent": "blue" },
-        { "measure": "Días Entrega Estimados Promedio", "accent": "violet" },
-        { "measure": "Costo Envío Promedio", "accent": "amber" }
+        {
+          "label": "Entregas con retraso",
+          "measure": "% Entregas con Retraso",
+          "delta": "% Entregas con Retraso"
+        },
+        {
+          "label": "Días de entrega",
+          "measure": "Días Entrega Promedio",
+          "delta": "Días Entrega Promedio"
+        },
+        {
+          "label": "Despacho del vendedor",
+          "measure": "Días Despacho Vendedor",
+          "delta": "Días Despacho Vendedor"
+        },
+        {
+          "label": "Tránsito",
+          "measure": "Días Tránsito",
+          "delta": "Días Tránsito"
+        },
+        {
+          "label": "Envío sobre ventas",
+          "measure": "Costo Envío % Ventas",
+          "delta": "Costo Envío % Ventas"
+        }
       ],
-      "grid": "A",
-      "visuals": [
-        { "slot": "main", "type": "lineChart", "title": "Días de entrega reales vs. estimados" },
-        { "slot": "side1", "type": "filledMap", "title": "% de entregas con retraso por estado" },
-        { "slot": "side2", "type": "donutChart", "title": "Ítems por costo de envío" }
-      ]
+      "panels": {
+        "left": {
+          "title": "Pedidos tardíos por causa",
+          "subtitle": "Despacho del vendedor fuera de plazo vs. demora del transportista"
+        },
+        "right": {
+          "title": "Vendedores a revisar",
+          "subtitle": "Con 50 pedidos o más · ordenado por % de entregas tardías"
+        }
+      }
     },
     {
       "id": "clientes",
       "name": "Clientes",
-      "subtitle": "Recurrencia, ticket y medios de pago",
+      "title": "Clientes y retención",
+      "subtitle": "Cuántos clientes vuelven y cuánto vale cada uno",
+      "grid": "G4",
       "kpis": [
-        { "measure": "Cantidad Clientes", "accent": "blue" },
-        { "measure": "% Clientes Recurrentes", "accent": "teal" },
-        { "measure": "Ticket Medio", "accent": "violet" },
-        { "measure": "% Reseñas Positivas (4-5)", "accent": "amber" }
+        {
+          "label": "Clientes",
+          "measure": "Cantidad Clientes",
+          "delta": "Cantidad Clientes"
+        },
+        {
+          "label": "Clientes recurrentes",
+          "measure": "% Clientes Recurrentes",
+          "delta": "% Clientes Recurrentes"
+        },
+        {
+          "label": "Ventas por cliente",
+          "measure": "Ventas por Cliente",
+          "delta": "Ventas por Cliente"
+        },
+        {
+          "label": "Margen por cliente",
+          "measure": "Margen por Cliente",
+          "delta": "Margen por Cliente"
+        }
       ],
-      "grid": "C",
-      "visuals": [
-        { "slot": "top", "type": "areaChart", "title": "Clientes por mes: nuevos vs. recurrentes" },
-        { "slot": "bottom1", "type": "donutChart", "title": "Clientes por frecuencia de compra" },
-        { "slot": "bottom2", "type": "barChart", "title": "Ventas por rango de ticket" },
-        { "slot": "bottom3", "type": "columnChart", "title": "Pagos por método y rango de precio" }
-      ]
+      "panels": {
+        "left": {
+          "title": "Retención por cohorte de primera compra",
+          "subtitle": "% de clientes de cada cohorte que vuelve a comprar N meses después"
+        },
+        "rtop": {
+          "title": "Clientes por frecuencia de compra",
+          "subtitle": "Historial completo de cada cliente"
+        },
+        "rbot": {
+          "title": "Ventas por rango de ticket",
+          "subtitle": "Importe total del pedido"
+        }
+      }
     },
     {
-      "id": "resenas",
-      "name": "Reseñas",
-      "subtitle": "Satisfacción del cliente y su relación con la entrega",
+      "id": "planificacion",
+      "name": "Planificación",
+      "title": "Planificación",
+      "subtitle": "Hacia dónde vamos al cierre del año y qué pasaría si…",
+      "grid": "G5",
       "kpis": [
-        { "measure": "Cantidad Reseñas", "accent": "blue" },
-        { "measure": "Puntaje Promedio", "accent": "teal" },
-        { "measure": "% Reseñas Positivas (4-5)", "accent": "violet" },
-        { "measure": "% Entregas con Retraso", "accent": "coral" }
+        {
+          "label": "Ventas del período",
+          "measure": "Ventas",
+          "delta": "Ventas"
+        },
+        {
+          "label": "Meta del año",
+          "measure": "Meta Ventas Plan"
+        },
+        {
+          "label": "Proyección de cierre",
+          "measure": "Proyección Cierre Año",
+          "extra": "proy"
+        },
+        {
+          "label": "Brecha vs. meta",
+          "measure": "Brecha Proyectada vs Meta"
+        }
       ],
-      "grid": "A",
-      "visuals": [
-        { "slot": "main", "type": "clusteredColumnChart", "title": "Reseñas por puntaje según estado de entrega" },
-        { "slot": "side1", "type": "lineChart", "title": "Puntaje promedio por mes" },
-        { "slot": "side2", "type": "scatterChart", "title": "Retraso vs. puntaje por estado" }
-      ]
+      "panels": {
+        "left": {
+          "title": "Real, proyección y meta",
+          "subtitle": "Proyección = promedio de los últimos 3 meses completos"
+        },
+        "rtop": {
+          "title": "Escenario de meta",
+          "subtitle": "Crecimiento objetivo sobre el año anterior",
+          "static": true
+        },
+        "rbot": {
+          "title": "Escenario logístico",
+          "subtitle": "Si evitáramos una parte de las entregas tardías",
+          "static": true
+        }
+      }
     }
-  ],
-  "grids": {
-    "main_area": { "x": 224, "y": 84, "w": 1040, "h": 620 },
-    "kpi_row": { "y": 84, "h": 96, "gap": 12 },
-    "charts": { "y": 192, "h": 512, "gap": 12 },
-    "A": {
-      "main":  { "x": 224, "y": 192, "w": 628, "h": 512 },
-      "side1": { "x": 864, "y": 192, "w": 400, "h": 250 },
-      "side2": { "x": 864, "y": 454, "w": 400, "h": 250 }
-    },
-    "B": {
-      "top":     { "x": 224, "y": 192, "w": 1040, "h": 250 },
-      "bottom1": { "x": 224, "y": 454, "w": 514, "h": 250 },
-      "bottom2": { "x": 750, "y": 454, "w": 514, "h": 250 }
-    },
-    "C": {
-      "top":     { "x": 224, "y": 192, "w": 1040, "h": 250 },
-      "bottom1": { "x": 224, "y": 454, "w": 338, "h": 250 },
-      "bottom2": { "x": 575, "y": 454, "w": 338, "h": 250 },
-      "bottom3": { "x": 926, "y": 454, "w": 338, "h": 250 }
-    }
-  }
+  ]
 }

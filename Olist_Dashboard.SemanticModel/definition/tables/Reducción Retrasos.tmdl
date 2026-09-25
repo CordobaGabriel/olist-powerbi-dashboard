@@ -1,0 +1,15 @@
+/// Parámetro de escenario: porcentaje de entregas tardías que se lograría evitar. Valor por defecto: 50 %.
+table 'Reducción Retrasos'
+	lineageTag: 4248999d-d3e9-4ad8-9460-ad38a0cd94bb
+
+	column 'Reducción Retrasos'
+		dataType: double
+		formatString: 0%
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Reducción Retrasos]
+
+	partition 'Reducción Retrasos' = calculated
+		mode: import
+		source = SELECTCOLUMNS( GENERATESERIES( 0, 10, 1 ), "Reducción Retrasos", [Value] / 10 )
+

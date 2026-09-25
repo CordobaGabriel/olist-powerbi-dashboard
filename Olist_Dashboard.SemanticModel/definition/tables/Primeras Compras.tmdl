@@ -1,0 +1,23 @@
+/// Fecha de primera compra de cada cliente. Base para las cohortes (evita columnas calculadas circulares).
+table 'Primeras Compras'
+	isHidden
+	lineageTag: 7b953951-65bd-4bd7-b4fe-eca6c3bffcb7
+
+	column 'ID Cliente'
+		lineageTag: 5f30360b-bb4d-40e4-999d-1377a0caa2d6
+		isNameInferred
+		sourceColumn: Pedidos[ID Cliente]
+
+	column 'Fecha Primera Compra'
+		lineageTag: 41074db1-db60-4402-8874-e226a113fd1f
+		isNameInferred
+		sourceColumn: [Fecha Primera Compra]
+
+	partition 'Primeras Compras' = calculated
+		mode: import
+		source =
+				ADDCOLUMNS(
+				    VALUES( Pedidos[ID Cliente] ),
+				    "Fecha Primera Compra", CALCULATE( MIN( Pedidos[Fecha Compra] ) )
+				)
+

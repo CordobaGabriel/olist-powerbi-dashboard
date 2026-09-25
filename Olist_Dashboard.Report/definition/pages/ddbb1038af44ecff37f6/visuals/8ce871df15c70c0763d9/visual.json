@@ -3,9 +3,9 @@
   "name": "8ce871df15c70c0763d9",
   "position": {
     "x": 12,
-    "y": 92,
+    "y": 100,
     "z": 1000,
-    "height": 38,
+    "height": 40,
     "width": 176,
     "tabOrder": 1000
   },
@@ -37,6 +37,31 @@
                   "Value": "false"
                 }
               }
+            },
+            "weight": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "weight": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
             }
           },
           "selector": {
@@ -63,7 +88,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#2F6BFF'"
+                      "Value": "'#3B78F0'"
                     }
                   }
                 }
@@ -88,7 +113,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#2F6BFF'"
+                      "Value": "'#3B78F0'"
                     }
                   }
                 }
@@ -97,7 +122,7 @@
             "transparency": {
               "expr": {
                 "Literal": {
-                  "Value": "85D"
+                  "Value": "88D"
                 }
               }
             }
@@ -124,7 +149,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Resumen Ejecutivo'"
+                  "Value": "'Resumen'"
                 }
               }
             },
@@ -146,10 +171,10 @@
                 }
               }
             },
-            "bold": {
+            "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "'Segoe UI'"
                 }
               }
             },
@@ -163,13 +188,31 @@
             "leftMargin": {
               "expr": {
                 "Literal": {
-                  "Value": "14D"
+                  "Value": "16D"
                 }
               }
             }
           },
           "selector": {
             "id": "default"
+          }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E6EAF2'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "hover"
           }
         }
       ]
@@ -229,6 +272,19 @@
         }
       ],
       "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
         {
           "properties": {
             "show": {

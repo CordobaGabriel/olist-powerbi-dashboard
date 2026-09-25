@@ -42,6 +42,12 @@ table Calendario
 		sourceColumn: [Año-Mes]
 		sortByColumn: 'Año Mes Num'
 
+	/// Etiqueta corta para ejes mensuales (ej.: "ene 18").
+	column 'Mes Año'
+		isNameInferred
+		sourceColumn: [Mes Año]
+		sortByColumn: 'Año Mes Num'
+
 	column 'Año Mes Num'
 		isHidden
 		lineageTag: c4c440bd-c125-4d09-a1bf-032425506fea
@@ -80,6 +86,7 @@ table Calendario
 				        "Mes", FORMAT( [Fecha], "mmmm" ),
 				        "Mes Corto", FORMAT( [Fecha], "mmm" ),
 				        "Año-Mes", FORMAT( [Fecha], "yyyy-mm" ),
+				        "Mes Año", SUBSTITUTE( FORMAT( [Fecha], "mmm" ), ".", "" ) & " " & FORMAT( [Fecha], "yy" ),
 				        "Año Mes Num", YEAR( [Fecha] ) * 100 + MONTH( [Fecha] ),
 				        "Trimestre", "T" & QUARTER( [Fecha] ),
 				        "N° Día Semana", WEEKDAY( [Fecha], 2 ),

@@ -1,0 +1,32 @@
+/// Meses de vida (desde la primera compra) en los que cada cliente recurrente volvió a comprar. Precalculada para que la matriz de cohortes sea rápida.
+table Recompras
+	isHidden
+	lineageTag: a900de5f-cace-4e70-994a-3e15b989f020
+
+	column 'ID Cliente'
+		dataType: string
+		isHidden
+		lineageTag: fe31e037-27af-48fb-a5c4-75104e5eaee7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ID Cliente]
+
+	column 'Mes de Vida'
+		dataType: int64
+		isHidden
+		lineageTag: 72704da8-10b4-492f-8f47-b9cbfb16540e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mes de Vida]
+
+	partition Recompras = calculated
+		mode: import
+		source =
+				DISTINCT(
+				    SELECTCOLUMNS(
+				        FILTER( Pedidos, RELATED( Clientes[Tipo Cliente] ) = "Recurrente" ),
+				        "ID Cliente", Pedidos[ID Cliente],
+				        "Mes de Vida", DATEDIFF( RELATED( Clientes[Fecha Primera Compra] ), Pedidos[Fecha Compra], MONTH )
+				    )
+				)
+

@@ -1,0 +1,15 @@
+/// Parámetro de escenario: crecimiento objetivo de ventas sobre el mismo período del año anterior. Valor por defecto: 120 %.
+table 'Crecimiento Objetivo'
+	lineageTag: 048e722b-ccdb-41f5-9705-a798066d6736
+
+	column 'Crecimiento Objetivo'
+		dataType: double
+		formatString: 0%
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Crecimiento Objetivo]
+
+	partition 'Crecimiento Objetivo' = calculated
+		mode: import
+		source = SELECTCOLUMNS( GENERATESERIES( 0, 20, 1 ), "Crecimiento Objetivo", [Value] / 10 )
+

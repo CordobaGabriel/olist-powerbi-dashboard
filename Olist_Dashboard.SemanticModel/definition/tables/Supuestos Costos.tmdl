@@ -1,0 +1,37 @@
+/// SUPUESTO: costo de mercadería como % del precio de venta, por macro categoría. Olist no publica costos; reemplazar por los costos reales de la empresa.
+table 'Supuestos Costos'
+	lineageTag: 7902cab2-8b6d-4bed-bb90-7bfa26285935
+
+	column 'Macro Categoría'
+		dataType: string
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Macro Categoría]
+
+	column '% Costo Mercadería'
+		dataType: double
+		formatString: 0%
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [% Costo Mercadería]
+
+	partition 'Supuestos Costos' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Macro Categoría", STRING,
+				    "% Costo Mercadería", DOUBLE,
+				    {
+				        { "Mercado", 0.62 },
+				        { "Hogar y Decoración", 0.55 },
+				        { "Tecnología", 0.72 },
+				        { "Belleza y Cuidado Personal", 0.50 },
+				        { "Moda", 0.48 },
+				        { "Construcción", 0.60 },
+				        { "Automotriz", 0.63 },
+				        { "Electrodomésticos", 0.70 },
+				        { "Cuidado Infantil", 0.58 },
+				        { "Mascotas", 0.55 }
+				    }
+				)
+

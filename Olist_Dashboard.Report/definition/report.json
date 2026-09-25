@@ -77,23 +77,18 @@
           "type": "CustomTheme"
         },
         {
-          "name": "olist_logo5220036228758551.png",
-          "path": "olist_logo5220036228758551.png",
-          "type": "Image"
-        },
-        {
           "name": "bg_resumen.png",
           "path": "bg_resumen.png",
           "type": "Image"
         },
         {
-          "name": "bg_productos.png",
-          "path": "bg_productos.png",
+          "name": "bg_rentabilidad.png",
+          "path": "bg_rentabilidad.png",
           "type": "Image"
         },
         {
-          "name": "bg_logistica.png",
-          "path": "bg_logistica.png",
+          "name": "bg_operacion.png",
+          "path": "bg_operacion.png",
           "type": "Image"
         },
         {
@@ -102,8 +97,8 @@
           "type": "Image"
         },
         {
-          "name": "bg_resenas.png",
-          "path": "bg_resenas.png",
+          "name": "bg_planificacion.png",
+          "path": "bg_planificacion.png",
           "type": "Image"
         }
       ]
