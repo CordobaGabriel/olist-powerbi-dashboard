@@ -1,0 +1,19 @@
+# Backups locales (no se versionan, quedan solo en disco)
+*_backup_*.pbix
+
+# Archivos temporales/bloqueo de Power BI Desktop
+~$*.pbix
+*.pbix.lock
+.pbi/
+
+# Datos crudos (Olist CSVs) - no se suben al repo, solo el link a Kaggle en el README
+data/
+*.csv
+
+# Sistema
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Node (por si el MCP deja artefactos locales)
+node_modules/
