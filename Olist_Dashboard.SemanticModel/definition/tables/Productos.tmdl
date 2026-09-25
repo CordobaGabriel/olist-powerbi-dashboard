@@ -1,0 +1,55 @@
+table Productos
+	lineageTag: d881ad4a-48ee-48f1-b52e-53f88336f36e
+
+	column 'ID Producto'
+		dataType: string
+		isHidden
+		lineageTag: b78ba539-fc68-4817-9c1f-0cc8723d42a2
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoría
+		dataType: string
+		lineageTag: 47a236c2-1925-454e-b060-2bf736edc533
+		summarizeBy: none
+		sourceColumn: product_category_name_es
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Macro Categoría'
+		dataType: string
+		lineageTag: 58d9fd67-4624-47f7-9342-8f9915f673be
+		summarizeBy: none
+		sourceColumn: macro_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Score Frecuencia Categoría'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1369f71b-6d53-4861-b43c-83796baa071a
+		summarizeBy: none
+		sourceColumn: freq_score_categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Productos = m
+		mode: import
+		source =
+				// Productos: una fila por producto (32.210) con su categoría y macro categoría.
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {"product_id", "product_category_name_es", "macro_category", "freq_score_categoria"}
+				    ),
+				    Unicos = Table.Distinct(Columnas, {"product_id"})
+				in
+				    Unicos
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

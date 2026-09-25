@@ -1,0 +1,194 @@
+/// Tabla contenedora de todas las medidas del modelo.
+table Medidas
+	lineageTag: 7cf30769-5888-4f60-a4f6-c2098444347a
+
+	/// Precio + costo de envío de cada ítem vendido. Coincide con el total pagado (diferencia < 0,02 %).
+	measure Ventas = SUMX( Items, Items[Precio] + Items[Costo Envío] )
+		formatString: R$ #,0
+		displayFolder: 1. Ventas
+		lineageTag: 8b625f33-de68-4509-bcc8-81ddc073e125
+
+	/// Ventas sin costo de envío.
+	measure 'Ingresos Productos' = SUM( Items[Precio] )
+		formatString: R$ #,0
+		displayFolder: 1. Ventas
+		lineageTag: aa3acbeb-266f-4f68-8ecc-a00a686df3f0
+
+	measure 'Costo Envío Total' = SUM( Items[Costo Envío] )
+		formatString: R$ #,0
+		displayFolder: 1. Ventas
+		lineageTag: 2f2e8799-4169-4a82-a27b-d57c82a9eba0
+
+	/// Ventas promedio por pedido.
+	measure 'Ticket Medio' = DIVIDE( [Ventas], [Cantidad Pedidos] )
+		formatString: R$ #,0.00
+		displayFolder: 1. Ventas
+		lineageTag: 076cabb1-ad75-4d1a-8bd1-e29f1c03fc6a
+
+	/// Participación sobre el total visible con los slicers aplicados.
+	measure '% Participación Ventas' = DIVIDE( [Ventas], CALCULATE( [Ventas], ALLSELECTED() ) )
+		formatString: 0.00%
+		displayFolder: 1. Ventas
+		lineageTag: 3f07c0f6-7283-4ed2-8d31-68c3b983b1ee
+
+	/// Suma de pagos. Usar para análisis por método de pago.
+	measure 'Monto Pagado' = SUM( Pagos[Monto Pago] )
+		formatString: R$ #,0
+		displayFolder: 1. Ventas
+		lineageTag: e3a70715-aca7-4181-9962-a66b5eae92ef
+
+	measure 'Cantidad Pedidos' = COUNTROWS( Pedidos )
+		formatString: #,0
+		displayFolder: 2. Pedidos
+		lineageTag: 9a73f79c-e8ef-4c6f-acd2-7850016a9cb9
+
+	measure 'Cantidad Ítems' = COUNTROWS( Items )
+		formatString: #,0
+		displayFolder: 2. Pedidos
+		lineageTag: 9cdec2bf-dfef-4f1e-94ff-6ef948667266
+
+	measure 'Cantidad Pagos' = COUNTROWS( Pagos )
+		formatString: #,0
+		displayFolder: 2. Pedidos
+		lineageTag: 5d53f38d-c71c-4b88-abf0-864ea671ae8a
+
+	/// Participación de pedidos sobre el total visible con los slicers aplicados.
+	measure '% Pedidos' = DIVIDE( [Cantidad Pedidos], CALCULATE( [Cantidad Pedidos], ALLSELECTED() ) )
+		formatString: 0.00%
+		displayFolder: 2. Pedidos
+		lineageTag: 2b5c7f48-522e-4d75-9787-44a5e71cbd17
+
+	/// Clientes con al menos un pedido en el contexto actual.
+	measure 'Cantidad Clientes' = DISTINCTCOUNT( Pedidos[ID Cliente] )
+		formatString: #,0
+		displayFolder: 3. Clientes
+		lineageTag: 456a0ef4-7630-487e-8893-fd4c584331cb
+
+	/// Clientes con más de un pedido en el contexto actual.
+	measure 'Clientes Recurrentes' =
+			COUNTROWS(
+			    FILTER(
+			        VALUES( Pedidos[ID Cliente] ),
+			        CALCULATE( COUNTROWS( Pedidos ) ) > 1
+			    )
+			)
+		formatString: #,0
+		displayFolder: 3. Clientes
+		lineageTag: 33437dc8-d674-46e8-8ea7-3e248a5e7e80
+
+	measure '% Clientes Recurrentes' = DIVIDE( [Clientes Recurrentes], [Cantidad Clientes] )
+		formatString: 0.0%
+		displayFolder: 3. Clientes
+		lineageTag: 64d2169b-301a-482e-9e0b-49b6be6ed7d4
+
+	/// Pedidos entregados después del día estimado / pedidos entregados.
+	measure '% Entregas con Retraso' =
+			DIVIDE(
+			    CALCULATE( COUNTROWS( Pedidos ), KEEPFILTERS( Pedidos[Días Retraso Entrega] > 0 ) ),
+			    CALCULATE( COUNTROWS( Pedidos ), KEEPFILTERS( NOT ISBLANK( Pedidos[Fecha Entrega] ) ) )
+			)
+		formatString: 0.0%
+		displayFolder: 4. Logística
+		lineageTag: e5c7073d-ce6b-4cce-b7ce-49e0b10c4a9d
+
+	/// Días promedio entre compra y entrega.
+	measure 'Días Entrega Promedio' =
+			AVERAGEX(
+			    FILTER( Pedidos, NOT ISBLANK( Pedidos[Fecha Entrega] ) ),
+			    DATEDIFF( Pedidos[Fecha Hora Compra], Pedidos[Fecha Entrega], DAY )
+			)
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: 4485cdab-8b05-4efd-9b87-a3a352998d35
+
+	/// Días promedio entre compra y fecha estimada de entrega.
+	measure 'Días Entrega Estimados Promedio' =
+			AVERAGEX(
+			    FILTER( Pedidos, NOT ISBLANK( Pedidos[Fecha Entrega Estimada] ) ),
+			    DATEDIFF( Pedidos[Fecha Hora Compra], Pedidos[Fecha Entrega Estimada], DAY )
+			)
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: a091d123-0c6f-448c-bc8c-19813b444880
+
+	/// Promedio de (entrega - estimada). Negativo = en promedio llega antes de lo estimado.
+	measure 'Días Retraso Promedio' = AVERAGE( Pedidos[Días Retraso Entrega] )
+		formatString: 0.0
+		displayFolder: 4. Logística
+		lineageTag: f000497a-daa9-4aef-b3f2-3f7ab08ee95f
+
+	/// Costo de envío promedio por ítem.
+	measure 'Costo Envío Promedio' = AVERAGE( Items[Costo Envío] )
+		formatString: R$ #,0.00
+		displayFolder: 4. Logística
+		lineageTag: ed26d903-e2a3-424e-996e-24f89081dfe9
+
+	/// Pedidos con reseña.
+	measure 'Cantidad Reseñas' = CALCULATE( COUNTROWS( Pedidos ), KEEPFILTERS( NOT ISBLANK( Pedidos[Puntaje Reseña] ) ) )
+		formatString: #,0
+		displayFolder: 5. Reseñas
+		lineageTag: 7cfb5023-73d9-4c8e-856f-2bd6d4da32ae
+
+	/// Puntaje promedio de reseñas (1 a 5).
+	measure 'Puntaje Promedio' = AVERAGE( Pedidos[Puntaje Reseña] )
+		formatString: 0.00
+		displayFolder: 5. Reseñas
+		lineageTag: d4476fb1-938d-4ee3-a4e5-d3f2bf9d401d
+
+	/// Reseñas con puntaje 4 o 5 / total de reseñas.
+	measure '% Reseñas Positivas (4-5)' =
+			DIVIDE(
+			    CALCULATE( [Cantidad Reseñas], KEEPFILTERS( Pedidos[Puntaje Reseña] >= 4 ) ),
+			    [Cantidad Reseñas]
+			)
+		formatString: 0.0%
+		displayFolder: 5. Reseñas
+		lineageTag: 4676cb61-b618-456b-9de8-6a0a09825f37
+
+	/// Barra SVG con la participación en ventas, escalada contra la categoría más grande. Para usar en tablas por macro categoría.
+	measure 'SVG Participación Ventas' =
+			VAR Pct = [% Participación Ventas]
+			VAR MaxPct = MAXX( ALLSELECTED( Productos[Macro Categoría] ), [% Participación Ventas] )
+			VAR Ancho = ROUND( DIVIDE( Pct, MaxPct ) * 110, 0 )
+			VAR Texto = SUBSTITUTE( FORMAT( Pct, "0.0%" ), "%", "%25" )
+			RETURN
+			    IF(
+			        ISINSCOPE( Productos[Macro Categoría] ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='170' height='20'>"
+			            & "<rect x='0' y='6' width='110' height='8' rx='4' fill='%231F2B4D'/>"
+			            & "<rect x='0' y='6' width='" & Ancho & "' height='8' rx='4' fill='%232F6BFF'/>"
+			            & "<text x='118' y='14' font-family='Segoe UI' font-size='11' fill='%23E6EAF2'>" & Texto & "</text></svg>"
+			    )
+		displayFolder: 6. Visuales SVG
+		dataCategory: ImageUrl
+
+	/// Cinco estrellas SVG rellenas según el puntaje promedio de reseñas.
+	measure 'SVG Puntaje Estrellas' =
+			VAR Puntaje = [Puntaje Promedio]
+			VAR Ancho = ROUND( DIVIDE( Puntaje, 5 ) * 84, 0 )
+			VAR Fila =
+			    "<use xlink:href='%23e'/><use xlink:href='%23e' x='17'/><use xlink:href='%23e' x='34'/>"
+			        & "<use xlink:href='%23e' x='51'/><use xlink:href='%23e' x='68'/>"
+			RETURN
+			    IF(
+			        NOT ISBLANK( Puntaje ),
+			        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='130' height='18'>"
+			            & "<defs><polygon id='e' points='8,1 10,6 15.5,6 11,9.5 12.8,15 8,11.8 3.2,15 5,9.5 0.5,6 6,6'/>"
+			            & "<clipPath id='c'><rect width='" & Ancho & "' height='18'/></clipPath></defs>"
+			            & "<g fill='%232A3658'>" & Fila & "</g>"
+			            & "<g fill='%23F5B83D' clip-path='url(%23c)'>" & Fila & "</g>"
+			            & "<text x='90' y='13' font-family='Segoe UI' font-size='11' fill='%23E6EAF2'>" & FORMAT( Puntaje, "0.00" ) & "</text></svg>"
+			    )
+		displayFolder: 6. Visuales SVG
+		dataCategory: ImageUrl
+
+	column Oculta
+		isHidden
+		lineageTag: 4b43d3af-3e83-4a71-a2b5-95a4788bf1b7
+		isNameInferred
+		sourceColumn: [Oculta]
+
+	partition Medidas = calculated
+		mode: import
+		source = ROW( "Oculta", BLANK() )
+

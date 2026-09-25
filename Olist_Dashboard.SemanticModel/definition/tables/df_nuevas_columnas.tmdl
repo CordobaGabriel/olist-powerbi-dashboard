@@ -1,0 +1,1171 @@
+table df_nuevas_columnas
+	lineageTag: 54862383-fd3c-4b3c-9fb8-991c4cdb5452
+
+	/// Suma de pagos contando cada pago (pedido + payment_sequential) una sola vez, aunque el pedido tenga varios ítems.
+	measure 'Total Ventas' =
+			SUMX(
+			    SUMMARIZE(
+			        'df_nuevas_columnas',
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[payment_sequential],
+			        'df_nuevas_columnas'[payment_value]
+			    ),
+			    'df_nuevas_columnas'[payment_value]
+			)
+		formatString: R$ #,0
+		lineageTag: 1b4c13b5-837f-457a-9f57-f22936f4b96c
+
+	/// Costo de envío total, contando cada ítem de pedido una sola vez.
+	measure Freight_Sum =
+			SUMX(
+			    SUMMARIZE(
+			        'df_nuevas_columnas',
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[order_item_id],
+			        'df_nuevas_columnas'[freight_value]
+			    ),
+			    'df_nuevas_columnas'[freight_value]
+			)
+		formatString: R$ #,0
+		lineageTag: 56f1a5b1-e984-496c-af21-ab0a2eb927bb
+
+	/// Ventas promedio por pedido.
+	measure 'Ticket Promedio' = DIVIDE( [Total Ventas], [Total Pedidos] )
+		formatString: R$ #,0.00
+		lineageTag: b6f55380-4a31-457e-b938-00247cbbe5ec
+
+	measure 'Total Pedidos' = DISTINCTCOUNT([order_id])
+		formatString: 0
+		lineageTag: 19e2689b-fdf2-4b18-bdfe-eb1955c1f7ae
+
+	measure Order_Count = ```
+			
+			CALCULATE(
+			    COUNT('df_nuevas_columnas'[order_id]),
+			    ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[product_category_name_es])
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 559b4fca-2816-4cb2-b8c7-3ee2b60c4ff2
+
+	measure Total_Payment_Value = ```
+			
+			CALCULATE(
+			    SUM('df_nuevas_columnas'[payment_value]),
+			    ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[product_category_name_es])
+			)
+			
+			```
+		formatString: 0
+		lineageTag: b57370f4-c063-4a27-8bd9-29439e765c0f
+
+	measure Total_Pay_Value_Pct = ```
+			
+			VAR Total_Payment = CALCULATE(SUM('df_nuevas_columnas'[payment_value]), ALL('df_nuevas_columnas'))
+			RETURN 
+			FORMAT(DIVIDE([Total_Payment_Value], Total_Payment, 0) * 100, "0.00") & "%"
+			
+			```
+		lineageTag: 4434b4c5-c555-466d-ace6-7174b15d9386
+
+	/// Pedidos entregados después del día estimado / pedidos entregados. Compara por día (yyyy-mm-dd), a nivel pedido.
+	measure '% Pedidos con Retraso' =
+			VAR Pedidos =
+			    SUMMARIZE(
+			        FILTER(
+			            'df_nuevas_columnas',
+			            'df_nuevas_columnas'[order_delivered_customer_date] <> ""
+			                && 'df_nuevas_columnas'[order_estimated_delivery_date] <> ""
+			        ),
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[order_delivered_customer_date],
+			        'df_nuevas_columnas'[order_estimated_delivery_date]
+			    )
+			VAR PedidosTarde =
+			    COUNTROWS(
+			        FILTER(
+			            Pedidos,
+			            LEFT('df_nuevas_columnas'[order_delivered_customer_date], 10)
+			                > LEFT('df_nuevas_columnas'[order_estimated_delivery_date], 10)
+			        )
+			    )
+			RETURN
+			    DIVIDE(PedidosTarde, COUNTROWS(Pedidos), 0)
+		formatString: 0.0%
+		lineageTag: ca8d2d8e-4b49-4043-9bc5-f1c77b63dfef
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Costo Promedio Envío' = ```
+			AVERAGE('df_nuevas_columnas'[freight_value])
+			
+			```
+		lineageTag: f07615a5-3b0f-4814-a8ea-3b56a514b662
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Días promedio entre compra y entrega, por pedido.
+	measure 'Tiempo Promedio Entrega' =
+			VAR Pedidos =
+			    SUMMARIZE(
+			        FILTER('df_nuevas_columnas', 'df_nuevas_columnas'[order_delivered_customer_date] <> ""),
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[order_purchase_timestamp],
+			        'df_nuevas_columnas'[order_delivered_customer_date]
+			    )
+			RETURN
+			    AVERAGEX(
+			        Pedidos,
+			        VAR s = 'df_nuevas_columnas'[order_delivered_customer_date]
+			        RETURN
+			            DATEDIFF(
+			                'df_nuevas_columnas'[order_purchase_timestamp],
+			                DATE(VALUE(LEFT(s, 4)), VALUE(MID(s, 6, 2)), VALUE(MID(s, 9, 2))),
+			                DAY
+			            )
+			    )
+		formatString: 0.0
+		lineageTag: 60e7810a-4174-4bf8-aef0-5d742e4e1657
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Pedidos_por_Categoria_Costo = ```
+			
+			COUNTROWS('df_nuevas_columnas')
+			
+			```
+		formatString: 0
+		lineageTag: 9ef16a6c-63d3-4684-8932-eb0a43c01028
+
+	/// Días promedio entre compra y fecha estimada de entrega, por pedido.
+	measure 'Tiempo Estimado Entrega' =
+			VAR Pedidos =
+			    SUMMARIZE(
+			        FILTER('df_nuevas_columnas', 'df_nuevas_columnas'[order_estimated_delivery_date] <> ""),
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[order_purchase_timestamp],
+			        'df_nuevas_columnas'[order_estimated_delivery_date]
+			    )
+			RETURN
+			    AVERAGEX(
+			        Pedidos,
+			        VAR s = 'df_nuevas_columnas'[order_estimated_delivery_date]
+			        RETURN
+			            DATEDIFF(
+			                'df_nuevas_columnas'[order_purchase_timestamp],
+			                DATE(VALUE(LEFT(s, 4)), VALUE(MID(s, 6, 2)), VALUE(MID(s, 9, 2))),
+			                DAY
+			            )
+			    )
+		formatString: 0.0
+		lineageTag: 5d0150da-d729-4725-9f67-e05c486a1819
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Order_Count_Pct = ```
+			
+			DIVIDE(
+			    COUNT('df_nuevas_columnas'[order_id]), 
+			    CALCULATE(COUNT('df_nuevas_columnas'[order_id]), ALL('df_nuevas_columnas')),
+			    0
+			)
+			
+			```
+		lineageTag: 446c38ce-d122-41ad-9d5f-583bb3fbc333
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Reseñas con puntaje 4 o 5 / total de reseñas. Cada reseña cuenta una vez por pedido.
+	measure '% Reseñas Positivas' =
+			VAR Resenas =
+			    SUMMARIZE(
+			        FILTER('df_nuevas_columnas', NOT ISBLANK('df_nuevas_columnas'[review_score_entero])),
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[review_score_entero]
+			    )
+			RETURN
+			    DIVIDE(
+			        COUNTROWS(FILTER(Resenas, 'df_nuevas_columnas'[review_score_entero] >= 4)),
+			        COUNTROWS(Resenas),
+			        0
+			    )
+		formatString: 0.0%
+		lineageTag: 9f3551ec-c119-4b61-9947-421576b79ab0
+
+	/// Puntaje promedio de reseñas (1 a 5), una por pedido.
+	measure 'Promedio Reviews' =
+			AVERAGEX(
+			    SUMMARIZE(
+			        FILTER('df_nuevas_columnas', NOT ISBLANK('df_nuevas_columnas'[review_score_entero])),
+			        'df_nuevas_columnas'[order_id],
+			        'df_nuevas_columnas'[review_score_entero]
+			    ),
+			    'df_nuevas_columnas'[review_score_entero]
+			)
+		formatString: 0.00
+		lineageTag: d4f33a87-1b4a-41a6-9b5a-0e955617f651
+
+	measure Total_Compras = ```
+			
+			CALCULATE(
+			    DISTINCTCOUNT('df_nuevas_columnas'[order_id]),
+			    ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[customer_unique_id])
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 4c376bd9-8c88-4542-87d4-842d19309c67
+
+	measure Pedidos_Promedio_Cliente = ```
+			
+			VAR PedidosPorCliente = 
+			    AVERAGEX(
+			        VALUES('df_nuevas_columnas'[customer_unique_id]), 
+			        CALCULATE(DISTINCTCOUNT('df_nuevas_columnas'[order_id]))
+			    )
+			RETURN PedidosPorCliente
+			```
+		lineageTag: e7f17c3c-96e0-4b63-a5e6-ceea06582391
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Tiempo_Promedio_Entre_Compras = ```
+			
+			VAR ComprasClientes = 
+			    ADDCOLUMNS(
+			        'df_nuevas_columnas',
+			        "FechaCompraAnterior",
+			        VAR ClienteActual = 'df_nuevas_columnas'[customer_unique_id]
+			        VAR FechaActual = 'df_nuevas_columnas'[order_purchase_timestamp]
+			        RETURN 
+			            MAXX(
+			                FILTER(
+			                    'df_nuevas_columnas', 
+			                    'df_nuevas_columnas'[customer_unique_id] = ClienteActual &&
+			                    'df_nuevas_columnas'[order_purchase_timestamp] < FechaActual
+			                ), 
+			                'df_nuevas_columnas'[order_purchase_timestamp]
+			            )
+			    )
+			
+			VAR DiferenciasDias = 
+			    ADDCOLUMNS(
+			        ComprasClientes,
+			        "DiferenciaDias",
+			        DATEDIFF([FechaCompraAnterior], [order_purchase_timestamp], DAY)
+			    )
+			
+			VAR Promedio = 
+			    AVERAGEX(
+			        FILTER(DiferenciasDias, NOT(ISBLANK([DiferenciaDias]))), 
+			        [DiferenciaDias]
+			    )
+			
+			RETURN Promedio
+			```
+		lineageTag: 53efb5d7-51af-4460-8238-6a5f8ff98634
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Total_Clientes = DISTINCTCOUNT('df_nuevas_columnas'[customer_unique_id])
+		formatString: 0
+		lineageTag: 3ce4a22e-4049-4ef2-8841-0eff07a65cc0
+
+	measure Clientes_Recurrentes = ```
+			
+			VAR ClientesConMasDeUnPedido = 
+			    FILTER(
+			        VALUES('df_nuevas_columnas'[customer_unique_id]), 
+			        CALCULATE(DISTINCTCOUNT('df_nuevas_columnas'[order_id])) > 1
+			    )
+			RETURN COUNTROWS(ClientesConMasDeUnPedido)
+			```
+		formatString: 0
+		lineageTag: 12d8aac4-8b01-4d28-b6bb-16720ea7c0d7
+
+	measure Tasa_Clientes_Recurrentes =
+			
+			DIVIDE([Clientes_Recurrentes], [Total_Clientes]) * 100
+		lineageTag: 32f8d502-06bc-40e2-8f0f-94c47514ff91
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Tasa_Clientes_Unicos =
+			
+			(1 - DIVIDE([Clientes_Recurrentes], [Total_Clientes])) * 100
+		lineageTag: 37564010-c1b7-4441-8206-4e6cadc48633
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Total_Sellers_Activos = ```
+			DISTINCTCOUNT('df_nuevas_columnas'[seller_id])
+			
+			```
+		formatString: 0
+		lineageTag: 7c7fa34c-5f54-4bd5-b125-77508899a83c
+
+	measure Ticket_Promedio_Seller = ```
+			
+			VAR VentasTotales = SUM('df_nuevas_columnas'[price]) 
+			VAR PedidosTotales = DISTINCTCOUNT('df_nuevas_columnas'[order_id])
+			RETURN 
+			DIVIDE(VentasTotales, PedidosTotales, 0) 
+			```
+		lineageTag: b5ecdaca-b17b-43e0-bedd-29339564bb26
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Ingresos_Seller = ```
+			
+			SUMX(
+			    VALUES('df_nuevas_columnas'[seller_id]), 
+			    SUM('df_nuevas_columnas'[price])
+			)
+			
+			```
+		lineageTag: 20958f4e-3479-4c66-b6dc-41a497180131
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Ganancia_Mes = ```
+			
+			SUM('df_nuevas_columnas'[price]) - 
+			SUM('df_nuevas_columnas'[freight_value])
+			```
+		lineageTag: ab9f45c2-324f-474b-b6d6-a369230d4732
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Sellers_Nuevos_Mes = ```
+			
+			CALCULATE(
+			    DISTINCTCOUNT('df_nuevas_columnas'[seller_id]),
+			    FILTER(
+			        'df_nuevas_columnas',
+			        'df_nuevas_columnas'[order_purchase_timestamp] = 
+			        CALCULATE(MIN('df_nuevas_columnas'[order_purchase_timestamp]), 
+			                 ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[seller_id])
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 716b5e57-8156-47ea-85e8-27665cd31a75
+
+	measure Ticket_Promedio_Por_Seller = ```
+			
+			VAR VentasPorSeller = CALCULATE(SUM('df_nuevas_columnas'[price]), ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[seller_id]))
+			VAR PedidosPorSeller = CALCULATE(DISTINCTCOUNT('df_nuevas_columnas'[order_id]), ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[seller_id]))
+			RETURN 
+			DIVIDE(VentasPorSeller, PedidosPorSeller, 0)
+			```
+		lineageTag: 57e1e0f4-2673-4b8c-a7bb-10c02cfd3243
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Pedidos que tienen reseña.
+	measure Total_Reseñas =
+			CALCULATE(
+			    DISTINCTCOUNT('df_nuevas_columnas'[order_id]),
+			    NOT ISBLANK('df_nuevas_columnas'[review_score_entero])
+			)
+		formatString: #,0
+		lineageTag: 55633453-54eb-472f-b555-8a4d474cee31
+
+	measure Calificacion_Promedio_Tipo_Entrega = ```
+			
+			CALCULATE(
+			    AVERAGE('df_nuevas_columnas'[review_score]), 
+			    ALLEXCEPT('df_nuevas_columnas', 'df_nuevas_columnas'[on_time])
+			)
+			```
+		formatString: 0
+		lineageTag: 373deb80-f64e-4a1b-80de-4b223afa44c5
+
+	/// Pedidos únicos. Respeta todos los filtros y slicers.
+	measure Order_Count_macro = DISTINCTCOUNT('df_nuevas_columnas'[order_id])
+		formatString: #,0
+		lineageTag: 97949244-e981-4fa0-b652-c16f238a0d9e
+
+	/// Ventas (misma lógica que Total Ventas). Respeta todos los filtros y slicers.
+	measure Total_Payment_Value_Macro = [Total Ventas]
+		formatString: R$ #,0
+		lineageTag: b0705570-9bb2-4517-9680-28005850b479
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Participación en las ventas del total seleccionado con los slicers. Devuelve un número (no texto).
+	measure Total_Pay_Value_Pct_Macro =
+			DIVIDE(
+			    [Total Ventas],
+			    CALCULATE([Total Ventas], ALLSELECTED('df_nuevas_columnas')),
+			    0
+			)
+		formatString: 0.00%
+		lineageTag: 12533b06-ef9e-45d6-ba2b-d1c08d0d40b0
+
+	measure Porcentaje_Pedidos_Con_Comentarios = ```
+			
+			VAR TotalPedidos = COUNT('df_nuevas_columnas'[order_id])
+			VAR PedidosConComentarios = CALCULATE(
+			    COUNT('df_nuevas_columnas'[order_id]), 
+			    NOT(ISBLANK('df_nuevas_columnas'[review_score_entero])) 
+			)
+			
+			RETURN 
+			DIVIDE(PedidosConComentarios, TotalPedidos, 0)
+			```
+		lineageTag: cf93db31-1da3-4f5a-9c55-b1195525a334
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column order_id
+		dataType: string
+		lineageTag: 38fc1caa-a1fe-49a0-8c31-1cf53447b099
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: 07a6aa0b-4c35-434f-b14f-0a1eac67e06a
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 12679191-e56d-4326-8b3b-b64dfd665a7f
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_approved_at
+		dataType: string
+		lineageTag: bfec057e-b42f-42b6-bc32-9682d663ec2c
+		summarizeBy: none
+		sourceColumn: order_approved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_carrier_date
+		dataType: string
+		lineageTag: c7e1147f-a760-4f42-b69a-03ae589dc734
+		summarizeBy: none
+		sourceColumn: order_delivered_carrier_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_customer_date
+		dataType: string
+		lineageTag: 50d48ce4-e77e-4151-9dc1-c46e915e8ec6
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_estimated_delivery_date
+		dataType: string
+		lineageTag: 101d1f68-2039-48ab-b4d0-8c189a83c9ad
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		lineageTag: 8191c53b-147b-43c2-8549-4c7f54f02cdd
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_state
+		dataType: string
+		lineageTag: bb505953-d969-4eff-b4e5-a915a65e9b8e
+		summarizeBy: none
+		sourceColumn: customer_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_item_id
+		dataType: string
+		lineageTag: b196e1c7-94ae-43a3-8d1b-6f60bea954d8
+		summarizeBy: none
+		sourceColumn: order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		lineageTag: e282e14b-16dd-4f3a-b673-593edf51eaed
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		lineageTag: ea18160f-133f-44cc-99db-7b3d2c0ce9ff
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipping_limit_date
+		dataType: string
+		lineageTag: 557f0a3d-bf1e-4342-843f-4386f5e7d878
+		summarizeBy: none
+		sourceColumn: shipping_limit_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column price
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: e643f813-bf3c-4040-aee4-923fd62f94bf
+		summarizeBy: sum
+		sourceColumn: price
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column freight_value
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 31bc6fff-2866-4a5c-acdc-3871befd84d0
+		summarizeBy: sum
+		sourceColumn: freight_value
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_sequential
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b413951-1842-4d22-bfb4-6821a0170d07
+		summarizeBy: sum
+		sourceColumn: payment_sequential
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_type
+		dataType: string
+		lineageTag: feaf6ead-c3c8-4bf0-b848-6621f56aa99b
+		summarizeBy: none
+		sourceColumn: payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_installments
+		dataType: int64
+		formatString: 0
+		lineageTag: a24b50cf-fd88-4096-9b33-c548defa9cc7
+		summarizeBy: sum
+		sourceColumn: payment_installments
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_value
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: c0ada46b-e29e-4e65-98ac-6a91ddba5fce
+		summarizeBy: sum
+		sourceColumn: payment_value
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_score
+		dataType: string
+		lineageTag: c1ace896-b31f-46d4-9f28-3f23e6321524
+		summarizeBy: none
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category_name_es
+		dataType: string
+		lineageTag: 6b8c4c36-7e93-49a9-9596-2a7e17b2d091
+		summarizeBy: none
+		sourceColumn: product_category_name_es
+
+		annotation SummarizationSetBy = Automatic
+
+	column macro_category
+		dataType: string
+		lineageTag: ac663731-b69b-4be0-b163-810c8ba1c12d
+		summarizeBy: none
+		sourceColumn: macro_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_names
+		dataType: string
+		lineageTag: 52a84a71-bfbd-4363-8956-067c5fe97a82
+		summarizeBy: none
+		sourceColumn: seller_names
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_state
+		dataType: string
+		lineageTag: d995c9fd-aa6e-4f5e-8116-d32cfd25a2b9
+		summarizeBy: none
+		sourceColumn: seller_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_month
+		dataType: string
+		lineageTag: 4f71f3df-cd02-413f-a8e4-54dd2d12b343
+		summarizeBy: none
+		sourceColumn: day_of_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour
+		dataType: string
+		lineageTag: 3a66041d-80f3-4d22-9d75-bf4716ef777a
+		summarizeBy: none
+		sourceColumn: hour
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: string
+		lineageTag: c1fef63a-0c07-464b-81b7-07357f155d1b
+		summarizeBy: none
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_year
+		dataType: string
+		lineageTag: 7c85919c-8fc2-494c-9a69-b30cc8634d09
+		summarizeBy: none
+		sourceColumn: month_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week
+		dataType: string
+		lineageTag: 04ba3f98-f1cb-4d64-9d80-7cef769f2ed2
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+		annotation SummarizationSetBy = Automatic
+
+	column processing_time
+		dataType: string
+		lineageTag: 140d798c-e1b8-492c-a9a7-34f00e9036be
+		summarizeBy: none
+		sourceColumn: processing_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column approval_time
+		dataType: string
+		lineageTag: 847c3bfe-fa51-4905-aeb1-f460edbd6f3b
+		summarizeBy: none
+		sourceColumn: approval_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column prep_time
+		dataType: string
+		lineageTag: a44acce8-a6c2-48cb-a6d1-142f3a749e49
+		summarizeBy: none
+		sourceColumn: prep_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipping_late_days
+		dataType: string
+		lineageTag: 71cf44fc-fc59-410d-9bfc-6ea4af23f9c2
+		summarizeBy: none
+		sourceColumn: shipping_late_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_delay
+		dataType: string
+		lineageTag: 430a16ef-4dc7-4f68-8070-0d6eff2291a0
+		summarizeBy: none
+		sourceColumn: delivery_delay
+
+		annotation SummarizationSetBy = Automatic
+
+	column on_time
+		dataType: string
+		lineageTag: 0fd504bd-5703-45b8-bace-37102f2fa3e8
+		summarizeBy: none
+		sourceColumn: on_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column late_delivery
+		dataType: string
+		lineageTag: f78b8051-f170-4e8a-b706-5ae842957218
+		summarizeBy: none
+		sourceColumn: late_delivery
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_region
+		dataType: string
+		lineageTag: 6168c94a-b790-4282-b3b5-2ea63308d3ee
+		summarizeBy: none
+		sourceColumn: customer_region
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_region
+		dataType: string
+		lineageTag: e0c2f815-c492-4bec-82b0-70ce2b14d62d
+		summarizeBy: none
+		sourceColumn: seller_region
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_full_state
+		dataType: string
+		lineageTag: 26766447-d1ec-4753-8ae1-761c73653847
+		summarizeBy: none
+		sourceColumn: customer_full_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_full_state
+		dataType: string
+		lineageTag: b4083560-f24e-4a36-a34e-f84fe868f283
+		summarizeBy: none
+		sourceColumn: seller_full_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column max_order_item_id
+		dataType: string
+		lineageTag: e269ee05-451f-479d-ba08-ca02154c8cf4
+		summarizeBy: none
+		sourceColumn: max_order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column max_payment_sequential
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b3048f6-69df-494e-b97a-43aba7ead81f
+		summarizeBy: sum
+		sourceColumn: max_payment_sequential
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column most_frequent_payment_type
+		dataType: string
+		lineageTag: 911d50b6-fa1b-45c4-a5b7-1a1c7425824c
+		summarizeBy: none
+		sourceColumn: most_frequent_payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column precio_ticket
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: f70aeccf-be99-4638-8476-e98e9193f6a4
+		summarizeBy: sum
+		sourceColumn: precio_ticket
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column beneficio_ticket
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 4400cd34-5e6d-4c26-8c7e-e71df9e3a36f
+		summarizeBy: sum
+		sourceColumn: beneficio_ticket
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column late_delivery_label
+		dataType: string
+		lineageTag: 761a5c96-914d-4626-a75c-ff0d3dd682d8
+		summarizeBy: none
+		sourceColumn: late_delivery_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column num_pedidos
+		dataType: string
+		lineageTag: 16e61862-1c2e-49ba-8012-56293d5719fb
+		summarizeBy: none
+		sourceColumn: num_pedidos
+
+		annotation SummarizationSetBy = Automatic
+
+	column frecuencia_compra
+		dataType: string
+		lineageTag: 62631339-a505-493d-9387-209e3dc23c80
+		summarizeBy: none
+		sourceColumn: frecuencia_compra
+
+		annotation SummarizationSetBy = Automatic
+
+	column rango_ticket
+		dataType: string
+		lineageTag: c382703d-e510-4d0a-abaf-49d4e9548868
+		summarizeBy: none
+		sourceColumn: rango_ticket
+
+		annotation SummarizationSetBy = Automatic
+
+	column freq_score
+		dataType: string
+		lineageTag: 850e558f-49e9-4a78-a750-ed2f8bede7d2
+		summarizeBy: none
+		sourceColumn: freq_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column VM_score
+		dataType: string
+		lineageTag: f0382e89-dd3e-485e-a274-2a6f7b7c2b20
+		summarizeBy: none
+		sourceColumn: VM_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total_score
+		dataType: string
+		lineageTag: e9c895b2-7b09-49e7-ac44-f7046f5e27ee
+		summarizeBy: none
+		sourceColumn: Total_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column dias_entre_compras
+		dataType: string
+		lineageTag: bb042615-078f-4f1e-ac11-a24d16aa729a
+		summarizeBy: none
+		sourceColumn: dias_entre_compras
+
+		annotation SummarizationSetBy = Automatic
+
+	column frecuencia_temporal
+		dataType: string
+		lineageTag: 5decbfc7-6fa5-4a09-ac21-8de6601e5d49
+		summarizeBy: none
+		sourceColumn: frecuencia_temporal
+
+		annotation SummarizationSetBy = Automatic
+
+	column freq_score_categoria
+		dataType: string
+		lineageTag: b6e43c35-3bcd-4d9e-8fe6-65aea2447fc1
+		summarizeBy: none
+		sourceColumn: freq_score_categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column rango_precio_producto
+		dataType: string
+		lineageTag: 12509814-846e-4e64-afae-0677c88fd8f3
+		summarizeBy: none
+		sourceColumn: rango_precio_producto
+
+		annotation SummarizationSetBy = Automatic
+
+	column score_valor_producto
+		dataType: string
+		lineageTag: c8a1f920-f7fc-4562-ab65-37a17a0b8d99
+		summarizeBy: none
+		sourceColumn: score_valor_producto
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_score_categoria
+		dataType: string
+		lineageTag: b3a7df70-0cb1-45e6-a720-cc9131da99e8
+		summarizeBy: none
+		sourceColumn: total_score_categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Año Compra' = YEAR( [order_purchase_timestamp] )
+		formatString: 0
+		lineageTag: 3cf7c27e-033f-4f62-b239-892756e470ce
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cliente Recurrente' =
+			
+			VAR PedidosCliente = CALCULATE(COUNT([order_id]), ALLEXCEPT( 'df_nuevas_columnas', 'df_nuevas_columnas'[customer_unique_id] ))
+			RETURN IF(PedidosCliente > 1, "Recurrente", "Nuevo")
+		lineageTag: 72f9036d-3b50-4f24-873b-b631473c7c81
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Estado Completo' = ```
+			
+			SWITCH(
+			    'df_nuevas_columnas'[customer_state],
+			    "AC", "Acre",
+			    "AL", "Alagoas",
+			    "AP", "Amapá",
+			    "AM", "Amazonas",
+			    "BA", "Bahia",
+			    "CE", "Ceará",
+			    "DF", "Distrito Federal",
+			    "ES", "Espírito Santo",
+			    "GO", "Goiás",
+			    "MA", "Maranhão",
+			    "MT", "Mato Grosso",
+			    "MS", "Mato Grosso do Sul",
+			    "MG", "Minas Gerais",
+			    "PA", "Pará",
+			    "PB", "Paraíba",
+			    "PR", "Paraná",
+			    "PE", "Pernambuco",
+			    "PI", "Piauí",
+			    "RJ", "Río de Janeiro",
+			    "RN", "Río Grande do Norte",
+			    "RS", "Río Grande do Sul",
+			    "RO", "Rondônia",
+			    "RR", "Roraima",
+			    "SC", "Santa Catarina",
+			    "SP", "São Paulo",
+			    "SE", "Sergipe",
+			    "TO", "Tocantins",
+			    "Desconocido"  -- Para manejar valores nulos o erróneos
+			)
+			
+			```
+		lineageTag: cf00b1e6-5a2b-4fed-80a5-cebfdbb8fb25
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Costo_Envio_Categoria = ```
+			
+			VAR Q1 = CALCULATE(PERCENTILE.INC('df_nuevas_columnas'[freight_value], 0.25), ALL('df_nuevas_columnas'))
+			VAR Q3 = CALCULATE(PERCENTILE.INC('df_nuevas_columnas'[freight_value], 0.75), ALL('df_nuevas_columnas'))
+			VAR Costo = 'df_nuevas_columnas'[freight_value]
+			RETURN 
+			    SWITCH(
+			        TRUE(),
+			        Costo <= Q1, "Envío barato",
+			        Costo > Q1 && Costo <= Q3, "Costo medio",
+			        Costo > Q3, "Envío caro",
+			        "Sin datos"
+			    )
+			
+			```
+		lineageTag: cb008239-2391-4b8e-8318-1d9a1fb85797
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Año-Mes = FORMAT('df_nuevas_columnas'[order_purchase_timestamp], "YYYY-MM")
+		lineageTag: d83b3e8a-9926-40c5-98e3-1021a9c3c48c
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region =
+			SWITCH(
+			    TRUE(),
+			    'df_nuevas_columnas'[customer_state] IN {"AC", "AP", "AM", "PA", "RO", "RR", "TO"}, "Norte",
+			    'df_nuevas_columnas'[customer_state] IN {"AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE"}, "Nordeste",
+			    'df_nuevas_columnas'[customer_state] IN {"DF", "GO", "MT", "MS"}, "Centro-Oeste",
+			    'df_nuevas_columnas'[customer_state] IN {"ES", "MG", "RJ", "SP"}, "Sudeste",
+			    'df_nuevas_columnas'[customer_state] IN {"PR", "RS", "SC"}, "Sur",
+			    "Desconocido" )
+		lineageTag: 4bba01d2-5633-4b34-b794-9d4c72dd8fad
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_score_entero = ```
+			
+			VAR score = TRIM('df_nuevas_columnas'[review_score])  -- Elimina espacios en blanco
+			RETURN 
+			    IF(
+			        score = "" || score = BLANK(),  -- Verifica si la celda está vacía
+			        BLANK(),  -- Si está vacía, deja el valor en BLANK()
+			        INT(VALUE(score))  -- Si tiene un número, lo convierte a entero
+			    )
+			```
+		formatString: 0
+		lineageTag: c9b526ff-72b3-4b86-bc68-9ee2efa6e4ae
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Metodo Pago Filtro' =
+			
+			IF(
+			    'df_nuevas_columnas'[payment_type] IN {"credit_card", "voucher", "debit_card", "boleto"},
+			    'df_nuevas_columnas'[payment_type],
+			    "Otros"
+			)
+		lineageTag: 9d399a9a-7c73-4741-86c0-5b79002ce183
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoría_Precio =
+			
+			SWITCH(
+			    TRUE(),
+			    'df_nuevas_columnas'[price] < 50, "Económico",
+			    'df_nuevas_columnas'[price] >= 50 && 'df_nuevas_columnas'[price] < 200, "Medio",
+			    'df_nuevas_columnas'[price] >= 200, "Premium"
+			)
+		lineageTag: f0f51012-23cc-493f-821e-6e2e63523875
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Metodo_Pago_Filtro_Limpio =
+			
+			SWITCH(
+			    'df_nuevas_columnas'[payment_type],
+			    "credit_card", "Tarjeta Credito",
+			    "debit_card", "Tarjeta Debito",
+			    "voucher", "Voucher",
+			    "boleto", "Boleta",
+			    "Otros"
+			)
+		lineageTag: 3965ab05-6250-4db0-9b14-24d947ff8cc1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Macro_Category_Calculo =
+			
+			SWITCH(
+			    TRUE(),
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Ropa Femenina", "Ropa Masculina", "Ropa Infantil", "Calzado de Moda",
+			        "Moda Deportiva", "Ropa Interior y Moda de Playa", "Bolsos y Accesorios de Moda",
+			        "Relojes y Regalos", "Maletas y Accesorios"
+			    }, "Moda",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Muebles para Living", "Muebles para Dormitorio", "Muebles de Decoración",
+			        "Muebles de Oficina", "Muebles para el Hogar", "Artículos para el Hogar",
+			        "Hogar y Confort", "Cama, Mesa y Baño", "Flores", "Climatización",
+			        "Sillones, Colchones y Tapicería"
+			    }, "Hogar y Decoración",
+			    'df_nuevas_columnas'[product_category_name_es] = "Automotriz", "Automotriz",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Materiales de Construcción", "Herramientas de Construcción",
+			        "Herramientas de Seguridad para Construcción", "Herramientas para Construcción y Jardinería",
+			        "Herramientas para Jardín", "Herramientas de Iluminación para Construcción"
+			    }, "Construcción",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Computadoras y PCs", "Accesorios de Informática", "Tablets, Impresión e Imagen",
+			        "Consolas y Videojuegos", "Electrónica", "Telefonía", "Telefonía Fija", "Audio"
+			    }, "Tecnología",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Belleza y Salud", "Perfumería"
+			    }, "Belleza y Cuidado Personal",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Electrodomésticos", "Pequeños Electrodomésticos", "Pequeños Electrodomésticos de Cocina"
+			    }, "Electrodomésticos",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Alimentos", "Alimentos y Bebidas", "Bebidas", "Gastronomía", "Seguridad y Servicios",
+			        "CDs, DVDs y Música", "Música", "Libros de Interés General", "Libros Técnicos",
+			        "Libros Importados", "Instrumentos Musicales", "Cine y Fotografía", "DVDs y Blu-ray",
+			        "Marketplace", "Productos Innovadores", "Artículos de Navidad", "Artículos para Fiestas",
+			        "Deportes y Ocio", "Juguetes", "Artes y Artesanías", "Señalización y Seguridad",
+			        "Industria, Comercio y Negocios", "Agroindustria y Comercio", "Papelería", "Otros"
+			    }, "Mercado",
+			    'df_nuevas_columnas'[product_category_name_es] IN {
+			        "Bebés", "Pañales e Higiene"
+			    }, "Cuidado Infantil",
+			    'df_nuevas_columnas'[product_category_name_es] = "Tienda de Mascotas", "Mascotas",
+			    "Mercado"  // Valor por defecto si no hay coincidencia
+			)
+		lineageTag: fdf210c6-1696-4c64-99e0-3bbe2d1d96bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Late_Delivery_Label_Limpio = ```
+			
+			SWITCH(
+			    'df_nuevas_columnas'[late_delivery_label], 
+			    "on_time", "A Tiempo",
+			    "late_delivery", "Tardío")
+			```
+		lineageTag: 4eaa9f26-6b1c-45b7-b9b7-73af3d311569
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column processing_time_numero = ```
+			
+			VAR score = TRIM('df_nuevas_columnas'[processing_time])  -- Elimina espacios en blanco
+			RETURN 
+			    IF(
+			        score = "" || score = BLANK(),  -- Verifica si la celda está vacía
+			        BLANK(),  -- Si está vacía, deja el valor en BLANK()
+			        INT(VALUE(score))  -- Si tiene un número, lo convierte a entero
+			    )
+			```
+		formatString: 0
+		lineageTag: a1ccb56f-90e5-4924-9642-d1e44dc56855
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_delay_numerico = ```
+			
+			DATEDIFF('df_nuevas_columnas'[order_estimated_delivery_date], 
+			         'df_nuevas_columnas'[order_delivered_customer_date], 
+			         DAY)
+			```
+		formatString: 0
+		lineageTag: af5c9d95-ac3d-4997-94eb-0ebe9353febe
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition df_nuevas_columnas = m
+		mode: import
+		source =
+				let
+				    Origen = Csv.Document(File.Contents("C:\Users\afber\Documents\Data Analysis\Nuclio School\3. Proyecto Final\Olist-Sentiment-Analysis\2. Documentos_Data\df_nuevas_columnas.csv"),[Delimiter=",", Columns=58, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Encabezados promovidos" = Table.PromoteHeaders(Origen, [PromoteAllScalars=true]),
+				    #"Valor reemplazado" = Table.ReplaceValue(#"Encabezados promovidos",".",",",Replacer.ReplaceText,{"price"}),
+				    #"Valor reemplazado1" = Table.ReplaceValue(#"Valor reemplazado",".",",",Replacer.ReplaceText,{"freight_value", "payment_sequential", "payment_installments", "payment_value", "review_score", "max_payment_sequential", "precio_ticket", "beneficio_ticket"})
+				in
+				    #"Valor reemplazado1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegación
+

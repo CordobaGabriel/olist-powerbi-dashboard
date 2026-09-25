@@ -1,0 +1,140 @@
+table Items
+	lineageTag: d8ca77bc-803a-42d0-9be8-0a631f35389e
+
+	column 'ID Pedido'
+		dataType: string
+		isHidden
+		lineageTag: 5e28481d-6fff-41ee-9e43-866f31bb7ff3
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'N° Ítem'
+		dataType: int64
+		formatString: 0
+		lineageTag: e711111f-2854-4d8d-bac6-5015203c1eb5
+		summarizeBy: none
+		sourceColumn: order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'ID Producto'
+		dataType: string
+		isHidden
+		lineageTag: efa62e81-40a5-4df6-8840-07fc001f066b
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'ID Vendedor'
+		dataType: string
+		isHidden
+		lineageTag: a6babb81-44ba-4fb9-ad60-28cfca495129
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Límite Despacho'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: dd311916-5fa2-41f0-9683-e3cd53e873f7
+		summarizeBy: none
+		sourceColumn: shipping_limit_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Precio
+		dataType: decimal
+		formatString: R$ #,0.00
+		lineageTag: df464683-7571-480f-9aa5-8d4cdc2c53b5
+		summarizeBy: none
+		sourceColumn: price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
+
+	column 'Costo Envío'
+		dataType: decimal
+		formatString: R$ #,0.00
+		lineageTag: 6c541df3-097e-4046-9f9a-c91cd52c73c4
+		summarizeBy: none
+		sourceColumn: freight_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
+
+	column 'Rango Precio Producto'
+		dataType: string
+		lineageTag: ed85ef89-d4cb-4189-8317-cfe538411c43
+		summarizeBy: none
+		sourceColumn: rango_precio_producto
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Score Valor Producto'
+		dataType: int64
+		formatString: 0
+		lineageTag: 90415b46-de94-420d-9687-d07f2eab1ae1
+		summarizeBy: none
+		sourceColumn: score_valor_producto
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Score Total Categoría'
+		dataType: int64
+		formatString: 0
+		lineageTag: cd74539e-deba-4f17-a6bd-b8ab5ea46db1
+		summarizeBy: none
+		sourceColumn: total_score_categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Orden Categoría Precio' = SWITCH( TRUE(), Items[Precio] < 50, 1, Items[Precio] < 200, 2, 3 )
+		isHidden
+		lineageTag: 593c693f-4e45-495e-9a56-c9ace9acb313
+		summarizeBy: none
+
+	column 'Categoría Precio' = SWITCH( Items[Orden Categoría Precio], 1, "Económico (< R$ 50)", 2, "Medio (R$ 50-200)", "Premium (≥ R$ 200)" )
+		lineageTag: 4cfad9f8-195c-4034-a648-d9f46156ca4c
+		sortByColumn: 'Orden Categoría Precio'
+
+	column 'Orden Costo Envío' =
+			VAR Q1 = PERCENTILE.INC( Items[Costo Envío], 0.25 )
+			VAR Q3 = PERCENTILE.INC( Items[Costo Envío], 0.75 )
+			RETURN
+			    SWITCH( TRUE(), Items[Costo Envío] <= Q1, 1, Items[Costo Envío] <= Q3, 2, 3 )
+		isHidden
+		lineageTag: 7336b478-3c22-48bd-a01d-41cf60c79999
+		summarizeBy: none
+
+	/// Cuartiles del costo de envío por ítem: ≤ Q1 barato, Q1-Q3 medio, > Q3 caro.
+	column 'Categoría Costo Envío' = SWITCH( Items[Orden Costo Envío], 1, "Envío barato", 2, "Costo medio", "Envío caro" )
+		lineageTag: 84b5c1a7-3475-44a3-949e-a7d81c8f9e4a
+		sortByColumn: 'Orden Costo Envío'
+
+	partition Items = m
+		mode: import
+		source =
+				// Items: una fila por ítem de pedido (109.796). Fuente de ventas (precio + flete) por producto/seller.
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {
+				            "order_id", "order_item_id", "product_id", "seller_id", "shipping_limit_date",
+				            "price", "freight_value", "rango_precio_producto", "score_valor_producto", "total_score_categoria"
+				        }
+				    ),
+				    Unicos = Table.Distinct(Columnas, {"order_id", "order_item_id"})
+				in
+				    Unicos
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

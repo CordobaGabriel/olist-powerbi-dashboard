@@ -1,0 +1,139 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 300
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1591.0760720241303,
+            "y": 316.34890080864119
+          },
+          "nodeIndex": "df_nuevas_columnas",
+          "nodeLineageTag": "54862383-fd3c-4b3c-9fb8-991c4cdb5452",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 215.51009005683125,
+            "y": 80.213349458684888
+          },
+          "nodeIndex": "Clientes",
+          "nodeLineageTag": "8916fccf-168c-44dc-a534-91455fa42741",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 838.92639253366713,
+            "y": 388.42029493308951
+          },
+          "nodeIndex": "Items",
+          "nodeLineageTag": "d8ca77bc-803a-42d0-9be8-0a631f35389e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.33915265309633,
+            "y": 38.276384099724623
+          },
+          "nodeIndex": "Olist_Base",
+          "nodeLineageTag": "acbf914e-7101-47e5-b45f-baee37cecb7d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 682.69780161728261
+          },
+          "nodeIndex": "Pagos",
+          "nodeLineageTag": "e2e03f04-364e-4304-a99e-c65d0b2ec32e",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 334.18956625017307,
+            "y": 378.4041724685668
+          },
+          "nodeIndex": "Pedidos",
+          "nodeLineageTag": "545c61ba-cb25-462a-86de-81489cb7fbf1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 902.49009809170582,
+            "y": -50
+          },
+          "nodeIndex": "Productos",
+          "nodeLineageTag": "d881ad4a-48ee-48f1-b52e-53f88336f36e",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1357.0760720241303,
+            "y": 414.34890080864119
+          },
+          "nodeIndex": "RutaCSV",
+          "nodeLineageTag": "a3ead639-7e95-4101-9679-3d3fffb0e660",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1123.07607202413,
+            "y": 341.23205695039633
+          },
+          "nodeIndex": "Vendedores",
+          "nodeLineageTag": "a6c0e582-84a3-4caf-8e21-f0a8c7935a6b",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

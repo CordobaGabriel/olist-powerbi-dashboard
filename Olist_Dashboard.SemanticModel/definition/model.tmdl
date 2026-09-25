@@ -1,0 +1,46 @@
+model Model
+	culture: es-AR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-AR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+/// Errores en las consultas cargadas en 15/2/2025 13:56:24.
+queryGroup 'Errores en las consultas: 15/2/2025 13:56:24'
+
+	annotation PBI_QueryGroupOrder = 0
+
+/// Errores en las consultas cargadas en 15/2/2025 18:24:12.
+queryGroup 'Errores en las consultas: 15/2/2025 18:24:12'
+
+	annotation PBI_QueryGroupOrder = 1
+
+/// Errores en las consultas cargadas en 15/2/2025 18:52:55.
+queryGroup 'Errores en las consultas: 15/2/2025 18:52:55'
+
+	annotation PBI_QueryGroupOrder = 2
+
+/// Errores en las consultas cargadas en 15/2/2025 19:17:56.
+queryGroup 'Errores en las consultas: 15/2/2025 19:17:56'
+
+	annotation PBI_QueryGroupOrder = 3
+
+annotation PBI_QueryOrder = ["df_olist_actualizado_dataset","Errores en df_olist_actualizado_dataset","Errores en df_olist_actualizado_dataset (2)","Errores en df_olist_actualizado_dataset (3)","Errores en df_olist_actualizado_dataset (4)","df_nuevas_columnas","RutaCSV","Olist_Base","Pedidos","Items","Pagos","Clientes","Productos","Vendedores"]
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table df_nuevas_columnas
+ref table Pedidos
+ref table Items
+ref table Pagos
+ref table Clientes
+ref table Productos
+ref table Vendedores
+ref table Calendario
+ref table Medidas
+
+ref cultureInfo es-AR
+

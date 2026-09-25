@@ -1,0 +1,25 @@
+relationship AutoDetected_2cf81011-d3bd-4aab-a75b-8a5517e2f7fe
+	crossFilteringBehavior: bothDirections
+	fromColumn: Items.'ID Pedido'
+	toColumn: Pedidos.'ID Pedido'
+
+relationship AutoDetected_fca85d3b-7f46-4974-ba39-bf5df4fe62d6
+	fromColumn: Pagos.'ID Pedido'
+	toColumn: Pedidos.'ID Pedido'
+
+relationship AutoDetected_b14bb70c-7154-4a9c-9d91-e9e1f880c487
+	fromColumn: Pedidos.'ID Cliente'
+	toColumn: Clientes.'ID Cliente'
+
+relationship AutoDetected_21427cec-3d78-4152-b313-73881d6cd2bd
+	fromColumn: Items.'ID Producto'
+	toColumn: Productos.'ID Producto'
+
+relationship AutoDetected_462cb89b-237c-487f-9214-4226ed430ff4
+	fromColumn: Items.'ID Vendedor'
+	toColumn: Vendedores.'ID Vendedor'
+
+relationship 'Pedidos_Fecha Compra_Calendario_Fecha'
+	fromColumn: Pedidos.'Fecha Compra'
+	toColumn: Calendario.Fecha
+

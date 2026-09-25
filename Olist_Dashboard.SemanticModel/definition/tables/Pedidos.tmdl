@@ -1,0 +1,328 @@
+table Pedidos
+	lineageTag: 545c61ba-cb25-462a-86de-81489cb7fbf1
+
+	column 'ID Pedido'
+		dataType: string
+		isHidden
+		lineageTag: 9bb3b6a1-5e38-4df2-ba64-a1bb9cabe110
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'ID Cliente'
+		dataType: string
+		isHidden
+		lineageTag: 7ebacb5d-4ceb-431f-bbac-1fb33eb32b5d
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Estado Pedido (origen)'
+		dataType: string
+		isHidden
+		lineageTag: 6761c7c8-2e17-43f9-89c6-802f73641a31
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Hora Compra'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: d1c2c115-3d0a-4468-9abb-0d31cc666b3b
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Aprobación'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 0cf7a8f9-c584-438a-a6c6-30258860269f
+		summarizeBy: none
+		sourceColumn: order_approved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Despacho'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 5e16dc7f-a55c-4458-8946-9c9da1e22a44
+		summarizeBy: none
+		sourceColumn: order_delivered_carrier_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Entrega'
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 15720817-db2d-4a11-8845-f566bf85ca82
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Entrega Estimada'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: ca0002a5-9807-498e-bbdb-220cbe09eba0
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Puntaje Reseña'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5af25bda-e1f2-4aa5-809f-fb74f25fc5fb
+		summarizeBy: none
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Días Procesamiento'
+		dataType: int64
+		formatString: 0
+		lineageTag: 578ab79b-147c-459c-a21d-b5488822e91a
+		summarizeBy: none
+		sourceColumn: processing_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Días Aprobación'
+		dataType: int64
+		formatString: 0
+		lineageTag: c809c61d-4aa6-4128-94ca-68b9da8abb5f
+		summarizeBy: none
+		sourceColumn: approval_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Días Preparación'
+		dataType: int64
+		formatString: 0
+		lineageTag: ab6ade5b-925c-46a6-b5ea-05136d5349e2
+		summarizeBy: none
+		sourceColumn: prep_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Días Retraso Despacho'
+		dataType: int64
+		formatString: 0
+		lineageTag: 92f1c5f5-ca9d-49e8-9c8c-531676466fc1
+		summarizeBy: none
+		sourceColumn: shipping_late_days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Fecha de entrega - fecha estimada, en días. Negativo = llegó antes de lo estimado.
+	column 'Días Retraso Entrega'
+		dataType: int64
+		formatString: 0
+		lineageTag: a7fc4647-beab-4b10-b541-97abc620a50c
+		summarizeBy: none
+		sourceColumn: delivery_delay
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'A Tiempo'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: e5975a1b-6225-48bb-b9a0-2c9b13ac7299
+		summarizeBy: none
+		sourceColumn: on_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Con Retraso'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2a169979-be40-49b9-96ef-5c12502ec3aa
+		summarizeBy: none
+		sourceColumn: late_delivery
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Etiqueta Entrega (origen)'
+		dataType: string
+		isHidden
+		lineageTag: 7aed7ae9-868b-4f34-9a2b-943c349c5b96
+		summarizeBy: none
+		sourceColumn: late_delivery_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hora Compra'
+		dataType: int64
+		formatString: 0
+		lineageTag: 31bc9017-e4a4-450b-8366-a3acf060eeff
+		summarizeBy: none
+		sourceColumn: hour
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Día Semana (origen)'
+		dataType: string
+		isHidden
+		lineageTag: bb8e5c57-bff8-4df3-844e-c08125f24d13
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cantidad Ítems Pedido'
+		dataType: int64
+		formatString: 0
+		lineageTag: d2b18921-4735-44df-bb31-7307d2620229
+		summarizeBy: none
+		sourceColumn: max_order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cantidad Pagos Pedido'
+		dataType: int64
+		formatString: 0
+		lineageTag: 597cfad0-a8af-4b78-a30b-c2a9e1ec68dc
+		summarizeBy: none
+		sourceColumn: max_payment_sequential
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Método Pago Principal (origen)'
+		dataType: string
+		isHidden
+		lineageTag: 2b5da2e5-6d35-4792-a7e7-01a3c4f7b224
+		summarizeBy: none
+		sourceColumn: most_frequent_payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Importe Pedido'
+		dataType: decimal
+		formatString: R$ #,0.00
+		lineageTag: c7aa99bc-c791-41a1-820c-775e0b695ac9
+		summarizeBy: none
+		sourceColumn: precio_ticket
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
+
+	column 'Beneficio Ticket'
+		dataType: decimal
+		formatString: R$ #,0.00
+		lineageTag: 53ab9624-1e6e-40f2-a24e-f69e0c3d48d2
+		summarizeBy: none
+		sourceColumn: beneficio_ticket
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
+
+	column 'Rango Ticket'
+		dataType: string
+		lineageTag: 5af06094-7925-45e8-abea-f36a039d57fb
+		summarizeBy: none
+		sourceColumn: rango_ticket
+		sortByColumn: 'Orden Rango Ticket'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Orden Rango Ticket' = SWITCH( Pedidos[Rango Ticket], "Ticket < 75", 1, "Ticket 75-150", 2, "Ticket 150-350", 3, "Ticket 350-500", 4, "Ticket > 500", 5, 99 )
+		isHidden
+		summarizeBy: none
+
+	column 'Score Valor'
+		dataType: int64
+		formatString: 0
+		lineageTag: c9302caa-aec4-431e-874b-851c78e66c26
+		summarizeBy: none
+		sourceColumn: VM_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Score Total'
+		dataType: int64
+		formatString: 0
+		lineageTag: 36afa530-40f0-4d48-b0b0-c651f29f03e5
+		summarizeBy: none
+		sourceColumn: Total_score
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Días desde la compra anterior del mismo cliente. Vacío si es su primera compra.
+	column 'Días Desde Compra Anterior'
+		dataType: double
+		lineageTag: 7e203fb7-9df2-4740-a705-514af5dd113c
+		summarizeBy: none
+		sourceColumn: dias_entre_compras
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Frecuencia Temporal'
+		dataType: string
+		lineageTag: 338df075-aac7-4114-91e9-5090cb12a039
+		summarizeBy: none
+		sourceColumn: frecuencia_temporal
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fecha Compra'
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		lineageTag: 1cc76d0b-d023-4693-933f-4e3080a2a95a
+		summarizeBy: none
+		sourceColumn: fecha_compra
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Estado Pedido' = SWITCH( Pedidos[Estado Pedido (origen)], "delivered", "Entregado", "canceled", "Cancelado", Pedidos[Estado Pedido (origen)] )
+		lineageTag: fa94b487-9973-4064-a16e-89768d714139
+
+	/// Tardío = entregado después del día estimado.
+	column 'Estado Entrega' = IF( Pedidos[Días Retraso Entrega] > 0, "Tardío", "A Tiempo" )
+		lineageTag: aff4b077-db3f-4fa0-b7e5-fa5429bfa5f8
+
+	column 'Método Pago Principal' = SWITCH( Pedidos[Método Pago Principal (origen)], "credit_card", "Tarjeta de Crédito", "debit_card", "Tarjeta de Débito", "voucher", "Voucher", "boleto", "Boleto", "Otros" )
+		lineageTag: fb9a3905-3e22-46fd-8226-379e934654ad
+
+	partition Pedidos = m
+		mode: import
+		source =
+				// Pedidos: una fila por pedido (96.124). Fechas, estado, reseña y métricas de entrega.
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {
+				            "order_id", "customer_unique_id", "order_status",
+				            "order_purchase_timestamp", "order_approved_at", "order_delivered_carrier_date",
+				            "order_delivered_customer_date", "order_estimated_delivery_date",
+				            "review_score", "processing_time", "approval_time", "prep_time",
+				            "shipping_late_days", "delivery_delay", "on_time", "late_delivery", "late_delivery_label",
+				            "hour", "day_of_week", "max_order_item_id", "max_payment_sequential",
+				            "most_frequent_payment_type", "precio_ticket", "beneficio_ticket", "rango_ticket",
+				            "VM_score", "Total_score", "dias_entre_compras", "frecuencia_temporal"
+				        }
+				    ),
+				    Unicos = Table.Distinct(Columnas, {"order_id"}),
+				    FechaCompra = Table.AddColumn(Unicos, "fecha_compra", each DateTime.Date([order_purchase_timestamp]), type date),
+				    // 9999 = "sin compra previa" en el dataset original: se deja como nulo para no distorsionar promedios
+				    SinCentinela = Table.ReplaceValue(FechaCompra, 9999, null, Replacer.ReplaceValue, {"dias_entre_compras"})
+				in
+				    SinCentinela
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

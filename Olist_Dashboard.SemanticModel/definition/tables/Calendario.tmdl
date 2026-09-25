@@ -1,0 +1,88 @@
+/// Tabla de fechas del modelo (años completos que cubren las compras). Relacionada con Pedidos[Fecha Compra].
+table Calendario
+	lineageTag: 950b9b10-3f34-4891-b65f-e6ce57c7cd38
+	dataCategory: Time
+
+	column Fecha
+		isUnique
+		formatString: dd/mm/yyyy
+		lineageTag: f5be162b-3252-4666-938c-bc5ef234b8d9
+		isNameInferred
+		sourceColumn: [Fecha]
+
+	column Año
+		formatString: 0
+		lineageTag: 21f06e71-a215-45c6-9945-6ee8bd6dbabc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Año]
+
+	column 'N° Mes'
+		isHidden
+		lineageTag: 0f9b0e88-579e-4640-b486-80a976a95704
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [N° Mes]
+
+	column Mes
+		lineageTag: c609535c-8472-44e6-856b-9a3f9c95b4a3
+		isNameInferred
+		sourceColumn: [Mes]
+		sortByColumn: 'N° Mes'
+
+	column 'Mes Corto'
+		lineageTag: 6101a71d-6cc0-4e1f-a44b-d6c0d9fca5f6
+		isNameInferred
+		sourceColumn: [Mes Corto]
+		sortByColumn: 'N° Mes'
+
+	column Año-Mes
+		lineageTag: 9a564b7d-0734-479e-8b05-5cdbc095488d
+		isNameInferred
+		sourceColumn: [Año-Mes]
+		sortByColumn: 'Año Mes Num'
+
+	column 'Año Mes Num'
+		isHidden
+		lineageTag: c4c440bd-c125-4d09-a1bf-032425506fea
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Año Mes Num]
+
+	column Trimestre
+		lineageTag: ac3eece1-19a5-4708-815c-f3aef76207a8
+		isNameInferred
+		sourceColumn: [Trimestre]
+
+	column 'N° Día Semana'
+		isHidden
+		lineageTag: 734e8f32-87b2-4b96-a224-4bf8af26d066
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [N° Día Semana]
+
+	column 'Día Semana'
+		lineageTag: 26a0f52a-0c7b-4683-bdff-8110fb6b7fd3
+		isNameInferred
+		sourceColumn: [Día Semana]
+		sortByColumn: 'N° Día Semana'
+
+	partition Calendario = calculated
+		mode: import
+		source =
+				VAR Inicio = DATE( YEAR( MIN( Pedidos[Fecha Compra] ) ), 1, 1 )
+				VAR Fin = DATE( YEAR( MAX( Pedidos[Fecha Compra] ) ), 12, 31 )
+				RETURN
+				    ADDCOLUMNS(
+				        SELECTCOLUMNS( CALENDAR( Inicio, Fin ), "Fecha", [Date] ),
+				        "Año", YEAR( [Fecha] ),
+				        "N° Mes", MONTH( [Fecha] ),
+				        "Mes", FORMAT( [Fecha], "mmmm" ),
+				        "Mes Corto", FORMAT( [Fecha], "mmm" ),
+				        "Año-Mes", FORMAT( [Fecha], "yyyy-mm" ),
+				        "Año Mes Num", YEAR( [Fecha] ) * 100 + MONTH( [Fecha] ),
+				        "Trimestre", "T" & QUARTER( [Fecha] ),
+				        "N° Día Semana", WEEKDAY( [Fecha], 2 ),
+				        "Día Semana", FORMAT( [Fecha], "dddd" )
+				    )
+

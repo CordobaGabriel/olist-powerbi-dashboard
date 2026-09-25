@@ -1,0 +1,97 @@
+table Clientes
+	lineageTag: 8916fccf-168c-44dc-a534-91455fa42741
+
+	column 'ID Cliente'
+		dataType: string
+		isHidden
+		lineageTag: 58ff3e54-4d07-4184-900d-43ba5a9c4df8
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sigla Estado'
+		dataType: string
+		lineageTag: 065dfb33-7c6c-49e6-98c5-f8343b70df22
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: customer_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column Estado
+		dataType: string
+		lineageTag: 35bee3fa-513a-41e9-897e-ff293e063ed3
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: customer_full_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column Región
+		dataType: string
+		lineageTag: 2eb5b70f-ee49-4f3d-b262-e9b0e7bbd79e
+		summarizeBy: none
+		sourceColumn: customer_region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Pedidos Históricos (origen)'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c7360ca0-ab69-4b08-b3a7-0ebb1bc08878
+		summarizeBy: none
+		sourceColumn: num_pedidos
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Frecuencia Compra'
+		dataType: string
+		lineageTag: a7a0ef47-c89d-4b89-965f-d7dd18aa8dd8
+		summarizeBy: none
+		sourceColumn: frecuencia_compra
+		sortByColumn: 'Orden Frecuencia Compra'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Orden Frecuencia Compra' = SWITCH( Clientes[Frecuencia Compra], "Compra Única", 1, "2-3 Compras", 2, "4-5 Compras", 3, "6-7 Compras", 4, "9 o más Compras", 5, 99 )
+		isHidden
+		summarizeBy: none
+
+	column 'Score Frecuencia'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0898baed-579a-4214-9025-b29242590f9e
+		summarizeBy: none
+		sourceColumn: freq_score
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Recurrente = cliente con más de un pedido (no más de un ítem).
+	column 'Tipo Cliente' = IF( COUNTROWS( RELATEDTABLE( Pedidos ) ) > 1, "Recurrente", "Nuevo" )
+		lineageTag: 8aed6d4c-0011-42ee-aeee-113751211961
+
+	partition Clientes = m
+		mode: import
+		source =
+				// Clientes: una fila por cliente (93.011). Si un cliente cambió de estado, se toma el de su último pedido.
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {
+				            "customer_unique_id", "order_purchase_timestamp", "customer_state", "customer_full_state",
+				            "customer_region", "num_pedidos", "frecuencia_compra", "freq_score"
+				        }
+				    ),
+				    Ordenado = Table.Buffer(Table.Sort(Columnas, {{"order_purchase_timestamp", Order.Descending}})),
+				    Unicos = Table.Distinct(Ordenado, {"customer_unique_id"}),
+				    SinFecha = Table.RemoveColumns(Unicos, {"order_purchase_timestamp"})
+				in
+				    SinFecha
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,71 @@
+table Pagos
+	lineageTag: e2e03f04-364e-4304-a99e-c65d0b2ec32e
+
+	column 'ID Pedido'
+		dataType: string
+		isHidden
+		lineageTag: 454725c7-367c-4891-a0c5-daa2c2f0f101
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'N° Pago'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4bf2f6fe-9c46-46b6-8e5e-7db2b4ae84b0
+		summarizeBy: none
+		sourceColumn: payment_sequential
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tipo Pago (origen)'
+		dataType: string
+		isHidden
+		lineageTag: b0daec59-3025-4491-8f5d-ce0902c087a4
+		summarizeBy: none
+		sourceColumn: payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cuotas
+		dataType: int64
+		formatString: 0
+		lineageTag: 24c1390a-7a4a-41f3-8ce1-5030b46dc889
+		summarizeBy: none
+		sourceColumn: payment_installments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Monto Pago'
+		dataType: decimal
+		formatString: R$ #,0.00
+		lineageTag: bfde5e3d-d414-4711-857f-10056d6a1325
+		summarizeBy: none
+		sourceColumn: payment_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
+
+	column 'Método Pago' = SWITCH( Pagos[Tipo Pago (origen)], "credit_card", "Tarjeta de Crédito", "debit_card", "Tarjeta de Débito", "voucher", "Voucher", "boleto", "Boleto", "Otros" )
+		lineageTag: 5c824aa6-5db1-4c4a-98ea-91cfa99291d4
+
+	partition Pagos = m
+		mode: import
+		source =
+				// Pagos: una fila por pago de pedido (100.396). Método de pago, cuotas y monto.
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {"order_id", "payment_sequential", "payment_type", "payment_installments", "payment_value"}
+				    ),
+				    Unicos = Table.Distinct(Columnas, {"order_id", "payment_sequential"})
+				in
+				    Unicos
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

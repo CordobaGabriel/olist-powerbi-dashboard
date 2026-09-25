@@ -1,0 +1,64 @@
+table Vendedores
+	lineageTag: a6c0e582-84a3-4caf-8e21-f0a8c7935a6b
+
+	column 'ID Vendedor'
+		dataType: string
+		isHidden
+		lineageTag: 92b916e1-e30e-4e79-bd48-b9beaf004455
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Vendedor
+		dataType: string
+		lineageTag: 21843b98-231e-4c72-9c24-eb7385aaf873
+		summarizeBy: none
+		sourceColumn: seller_names
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sigla Estado'
+		dataType: string
+		lineageTag: 67461741-d61f-4e50-9836-0e64e6539f20
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: seller_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column Estado
+		dataType: string
+		lineageTag: 0bdd696e-fcf7-456e-a1d7-8e075860c3a9
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: seller_full_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column Región
+		dataType: string
+		lineageTag: 7801e726-bdbc-43c1-be3b-d40fcc58eb53
+		summarizeBy: none
+		sourceColumn: seller_region
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Vendedores = m
+		mode: import
+		source =
+				// Vendedores: una fila por seller (2.970).
+				let
+				    Origen = Olist_Base,
+				    Columnas = Table.SelectColumns(
+				        Origen,
+				        {"seller_id", "seller_names", "seller_state", "seller_full_state", "seller_region"}
+				    ),
+				    Unicos = Table.Distinct(Columnas, {"seller_id"})
+				in
+				    Unicos
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,214 @@
+{
+  "name": "Olist Dark",
+  "dataColors": [
+    "#2F6BFF",
+    "#22C3B5",
+    "#F2603F",
+    "#F5B83D",
+    "#9B7BFF",
+    "#5AA9FF",
+    "#FF8FA3",
+    "#7BD389",
+    "#C9A7FF",
+    "#FFD27A"
+  ],
+  "background": "#111B38",
+  "foreground": "#E6EAF2",
+  "tableAccent": "#2F6BFF",
+  "good": "#22C3B5",
+  "neutral": "#F5B83D",
+  "bad": "#F2603F",
+  "textClasses": {
+    "callout": {
+      "fontSize": 20,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#E6EAF2"
+    },
+    "title": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#E6EAF2"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#E6EAF2"
+    },
+    "label": {
+      "fontSize": 9,
+      "fontFace": "Segoe UI",
+      "color": "#8A96B3"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": false
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#E6EAF2"
+              }
+            },
+            "fontSize": 11,
+            "bold": true
+          }
+        ],
+        "visualHeader": [
+          {
+            "background": {
+              "solid": {
+                "color": "#111B38"
+              }
+            },
+            "foreground": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            },
+            "border": {
+              "solid": {
+                "color": "#111B38"
+              }
+            }
+          }
+        ],
+        "visualTooltip": [
+          {
+            "background": {
+              "solid": {
+                "color": "#0D1631"
+              }
+            },
+            "titleFontColor": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            },
+            "valueFontColor": {
+              "solid": {
+                "color": "#E6EAF2"
+              }
+            }
+          }
+        ],
+        "categoryAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            },
+            "gridlineShow": false
+          }
+        ],
+        "valueAxis": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            },
+            "gridlineColor": {
+              "solid": {
+                "color": "#1F2B4D"
+              }
+            }
+          }
+        ],
+        "legend": [
+          {
+            "labelColor": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            }
+          }
+        ],
+        "labels": [
+          {
+            "color": {
+              "solid": {
+                "color": "#E6EAF2"
+              }
+            }
+          }
+        ],
+        "outspacePane": [
+          {
+            "backgroundColor": {
+              "solid": {
+                "color": "#0D1631"
+              }
+            },
+            "foregroundColor": {
+              "solid": {
+                "color": "#E6EAF2"
+              }
+            },
+            "borderColor": {
+              "solid": {
+                "color": "#1F2B4D"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "outspace": [
+          {
+            "color": {
+              "solid": {
+                "color": "#0A1128"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "items": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#E6EAF2"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#111B38"
+              }
+            }
+          }
+        ],
+        "header": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#8A96B3"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
