@@ -224,18 +224,23 @@ table Pedidos
 
 		annotation PBI_FormatHint = {"currencyCulture":"es-AR"}
 
-	column 'Rango Ticket'
+	column 'Rango Ticket (origen)'
 		dataType: string
+		isHidden
 		lineageTag: 5af06094-7925-45e8-abea-f36a039d57fb
 		summarizeBy: none
 		sourceColumn: rango_ticket
-		sortByColumn: 'Orden Rango Ticket'
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'Orden Rango Ticket' = SWITCH( Pedidos[Rango Ticket], "Ticket < 75", 1, "Ticket 75-150", 2, "Ticket 150-350", 3, "Ticket 350-500", 4, "Ticket > 500", 5, 99 )
+	column 'Orden Rango Ticket' = SWITCH( Pedidos[Rango Ticket (origen)], "Ticket < 75", 1, "Ticket 75-150", 2, "Ticket 150-350", 3, "Ticket 350-500", 4, "Ticket > 500", 5, 99 )
 		isHidden
 		summarizeBy: none
+
+	/// Copia de la columna de origen para poder ordenarla por 'Orden Rango Ticket' sin dependencia circular.
+	column 'Rango Ticket' = Pedidos[Rango Ticket (origen)]
+		summarizeBy: none
+		sortByColumn: 'Orden Rango Ticket'
 
 	column 'Score Valor'
 		dataType: int64

@@ -46,18 +46,23 @@ table Clientes
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'Frecuencia Compra'
+	column 'Frecuencia Compra (origen)'
 		dataType: string
+		isHidden
 		lineageTag: a7a0ef47-c89d-4b89-965f-d7dd18aa8dd8
 		summarizeBy: none
 		sourceColumn: frecuencia_compra
-		sortByColumn: 'Orden Frecuencia Compra'
 
 		annotation SummarizationSetBy = Automatic
 
-	column 'Orden Frecuencia Compra' = SWITCH( Clientes[Frecuencia Compra], "Compra Única", 1, "2-3 Compras", 2, "4-5 Compras", 3, "6-7 Compras", 4, "9 o más Compras", 5, 99 )
+	column 'Orden Frecuencia Compra' = SWITCH( Clientes[Frecuencia Compra (origen)], "Compra Única", 1, "2-3 Compras", 2, "4-5 Compras", 3, "6-7 Compras", 4, "9 o más Compras", 5, 99 )
 		isHidden
 		summarizeBy: none
+
+	/// Copia de la columna de origen para poder ordenarla por 'Orden Frecuencia Compra' sin dependencia circular.
+	column 'Frecuencia Compra' = Clientes[Frecuencia Compra (origen)]
+		summarizeBy: none
+		sortByColumn: 'Orden Frecuencia Compra'
 
 	column 'Score Frecuencia'
 		dataType: int64
