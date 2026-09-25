@@ -135,4 +135,4 @@ python design/build.py
 
 ---
 
-<div align="center"><sub>Built by <a href="https://github.com/CordobaGabriel">Gabriel Córdoba</a> · <a href="https://www.linkedin.com/in/cordobagabriel">LinkedIn</a></sub></div>
+<div align="center"><sub>Built by <a href="https://github.com/CordobaGabriel">Gabriel Cordoba</a> · <a href="https://www.linkedin.com/in/cordobagabriel">LinkedIn</a></sub></div>
