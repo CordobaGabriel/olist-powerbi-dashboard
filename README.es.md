@@ -11,7 +11,7 @@
 ![Power Query](https://img.shields.io/badge/Power_Query-M-217346)
 ![Python](https://img.shields.io/badge/Python-build_y_validación-3776AB?logo=python&logoColor=white)
 
-[Hallazgos](#hallazgos-clave) · [Páginas](#páginas) · [Modelo de datos](#modelo-de-datos) · [Diseño](#diseño-del-reporte) · [Cómo abrirlo](#cómo-abrirlo)
+[Hallazgos](#hallazgos-clave) · [Páginas](#páginas) · [Modelo de datos](#modelo-de-datos) · [Notebooks](#notebooks-de-análisis) · [Diseño](#diseño-del-reporte) · [Cómo abrirlo](#cómo-abrirlo)
 
 <br>
 
@@ -96,6 +96,16 @@ Decisiones de diseño:
 - **Comparaciones:** los valores del año anterior se cortan en la última fecha con datos, así enero–agosto nunca se compara contra un año completo.
 - **Rendimiento:** una tabla precalculada `Recompras` dibuja la matriz de cohortes en ~0,2 s en lugar de ~8 s.
 
+## Notebooks de análisis
+
+El dashboard se apoya en tres notebooks de Python, que GitHub muestra con sus gráficos sin necesidad de ejecutarlos:
+
+| Notebook | Qué hace |
+|---|---|
+| [01 · Preparación de datos](notebooks/01_preparacion_datos.ipynb) | Perfila los 9 archivos originales de Kaggle, los limpia y construye `df_EDA.csv`, verificando que ninguna unión multiplique filas |
+| [02 · Análisis exploratorio](notebooks/02_analisis_exploratorio.ipynb) | Ventas, ticket, categorías, geografía, logística, reseñas y recompra, cada métrica en su granularidad correcta |
+| [03 · Modelo de satisfacción](notebooks/03_satisfaccion_y_sentimiento.ipynb) | Qué explica una reseña de 1–2★: regresión logística y gradient boosting con validación temporal (AUC 0,75), más un modelo de texto sobre los comentarios |
+
 ## Diseño del reporte
 
 - **Paleta:** tema oscuro con una paleta categórica **validada para daltonismo** sobre el fondo oscuro.
@@ -111,6 +121,7 @@ Olist_Dashboard.pbip              ← abrir este archivo en Power BI Desktop
 Olist_Dashboard.SemanticModel/    ← modelo (TMDL)
 Olist_Dashboard.Report/           ← reporte (PBIR)
 powerquery/                       ← scripts de Power Query (M) de cada tabla
+notebooks/                        ← preparación de datos, EDA y modelo de satisfacción (Python)
 design/
   layout.json                     ← paleta y geometría de cada página (fuente única de verdad)
   build.py                        ← regenera todo, en orden
@@ -125,7 +136,7 @@ docs/img/                         ← capturas usadas en este README
 
 ## Cómo abrirlo
 
-1. Descargá el [dataset de Olist en Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). El modelo lee `df_EDA.csv`, el archivo consolidado que generan los notebooks de este proyecto.
+1. Descargá el [dataset de Olist en Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). El modelo lee `df_EDA.csv`, el archivo consolidado que genera [`notebooks/01_preparacion_datos.ipynb`](notebooks/01_preparacion_datos.ipynb).
 2. Poné el archivo en `data/df_EDA.csv`, o cambiá el parámetro `RutaCSV` en Power Query.
 3. Abrí `Olist_Dashboard.pbip` en Power BI Desktop y actualizá.
 

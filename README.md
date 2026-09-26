@@ -11,7 +11,7 @@
 ![Power Query](https://img.shields.io/badge/Power_Query-M-217346)
 ![Python](https://img.shields.io/badge/Python-build_%26_validation-3776AB?logo=python&logoColor=white)
 
-[Key findings](#key-findings) · [Pages](#pages) · [Data model](#data-model) · [Design](#report-design) · [How to open](#how-to-open-it)
+[Key findings](#key-findings) · [Pages](#pages) · [Data model](#data-model) · [Notebooks](#analysis-notebooks) · [Design](#report-design) · [How to open](#how-to-open-it)
 
 <br>
 
@@ -96,6 +96,16 @@ Design choices:
 - **Comparisons:** prior-year values are capped at the last date with data, so January–August is never compared against a full year.
 - **Performance:** a precomputed `Recompras` table renders the cohort matrix in ~0.2 s instead of ~8 s.
 
+## Analysis notebooks
+
+The dashboard is built on three Python notebooks (in Spanish), rendered with their charts directly on GitHub:
+
+| Notebook | What it does |
+|---|---|
+| [01 · Data preparation](notebooks/01_preparacion_datos.ipynb) | Profiles the 9 raw Kaggle files, cleans them and builds `df_EDA.csv`, checking that no join multiplies rows |
+| [02 · Exploratory analysis](notebooks/02_analisis_exploratorio.ipynb) | Sales, ticket, categories, geography, logistics, reviews and repeat purchase, each metric at its correct grain |
+| [03 · Satisfaction model](notebooks/03_satisfaccion_y_sentimiento.ipynb) | What drives a 1–2★ review: logistic regression and gradient boosting with a time-based split (AUC 0.75), plus a text model on review comments |
+
 ## Report design
 
 - **Palette:** a dark theme whose categorical palette is **validated for color-vision deficiency** on the dark surface.
@@ -111,6 +121,7 @@ Olist_Dashboard.pbip              ← open this in Power BI Desktop
 Olist_Dashboard.SemanticModel/    ← model (TMDL)
 Olist_Dashboard.Report/           ← report (PBIR)
 powerquery/                       ← Power Query (M) scripts for each table
+notebooks/                        ← data preparation, EDA and satisfaction model (Python)
 design/
   layout.json                     ← palette and geometry of every page (single source of truth)
   build.py                        ← regenerates everything, in order
@@ -125,7 +136,7 @@ docs/img/                         ← screenshots used in this README
 
 ## How to open it
 
-1. Download the [Olist dataset from Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). The model reads `df_EDA.csv`, the consolidated file produced by the EDA notebooks of this project.
+1. Download the [Olist dataset from Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). The model reads `df_EDA.csv`, the consolidated file produced by [`notebooks/01_preparacion_datos.ipynb`](notebooks/01_preparacion_datos.ipynb).
 2. Put the file in `data/df_EDA.csv`, or change the `RutaCSV` parameter in Power Query.
 3. Open `Olist_Dashboard.pbip` in Power BI Desktop and refresh.
 
