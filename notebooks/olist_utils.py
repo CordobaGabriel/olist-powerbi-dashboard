@@ -1,7 +1,7 @@
 """Utilidades compartidas por los notebooks del proyecto Olist.
 
 Centraliza tres cosas que antes estaban copiadas en cada notebook:
-- dónde están los datos (repo local o Google Drive en Colab),
+- dónde están los datos (misma estructura en el repo y en Google Drive),
 - cómo pasar del archivo plano a cada granularidad (pedido, ítem, pago, cliente),
 - el estilo de los gráficos (misma paleta que el dashboard de Power BI).
 """
@@ -13,20 +13,20 @@ import matplotlib.ticker as mtick
 import pandas as pd
 
 # --------------------------------------------------------------------------- rutas
+# La carpeta del proyecto tiene la misma estructura en el repo y en Google Drive:
+#   notebooks/  data/df_EDA.csv  data/raw/*.csv
 RAIZ = Path(__file__).resolve().parent.parent
 DATA = RAIZ / "data"
 RAW = DATA / "raw"
-DRIVE = Path("/content/drive/MyDrive/Proyecto Análisis Avanzado de Datos y Sentimientos en E-Commerce")
 
 
 def ruta(nombre: str, carpeta: Path = DATA) -> Path:
-    """Devuelve la ruta de un archivo de datos: primero el repo, después Drive (Colab)."""
-    for base in (carpeta, DRIVE):
-        if (base / nombre).exists():
-            return base / nombre
+    """Devuelve la ruta de un archivo de datos del proyecto."""
+    if (carpeta / nombre).exists():
+        return carpeta / nombre
     raise FileNotFoundError(
-        f"No encuentro {nombre}. Descargá el dataset de Kaggle "
-        f"(https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) en {carpeta}."
+        f"No encuentro {nombre} en {carpeta}. Descargá el dataset de Kaggle "
+        f"(https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) y descomprimilo en data/raw/."
     )
 
 
