@@ -1,5 +1,7 @@
 <div align="center">
 
+**English** · [Español](README.es.md)
+
 # Olist E-commerce · Executive Dashboard
 
 **A Power BI dashboard that tells leadership whether the business is on track, why, and where to act first.**
